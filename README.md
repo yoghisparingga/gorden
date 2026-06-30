@@ -1,101 +1,100 @@
-# 🪟 Gorden Asri — Website Penjualan & Simulasi Gorden
+# 🪟 Gorden Asri — Website Penjualan & Simulasi Gorden 3D
 
-Website penjualan gorden lengkap dengan **simulator gorden interaktif**: pelanggan
-bisa mencoba model, warna, dan bahan gorden langsung di ruangan virtual — atau
-**mengunggah foto ruangan mereka sendiri** — sebelum memesan lewat WhatsApp.
+Website penjualan gorden dengan **simulator gorden 3D interaktif**: pelanggan bisa
+mencoba model, motif, warna, dan ukuran gorden langsung di **ruangan 3D yang bisa
+diputar dan di-tour** sebelum memesan lewat WhatsApp.
 
-Dibangun dengan **HTML, CSS, dan JavaScript murni** (tanpa framework, tanpa proses
-build). Cukup buka di browser dan langsung jalan.
+Dibangun dengan **React + Vite + Three.js** (`@react-three/fiber`).
 
 ## ✨ Fitur
 
-- **Simulator Gorden (Canvas)** — render gorden realtime di atas jendela:
-  - **6 ruangan preset** (ruang tamu, kamar tidur, kamar anak, ruang makan,
-    dapur, kantor) + **unggah foto ruangan sendiri**
-  - 4 model header: Lipat (pinch pleat), Gelombang (wave), Smokring (eyelet), Vitrase
-  - **6 motif kain**: Polos, Garis, Kotak, Titik, Bunga, Daun
-  - Pilih warna dari swatch produk atau **warna kustom** (color picker)
-  - Slider **buka/tutup** gorden + lapisan **vitrase** opsional
-  - Preset & input **ukuran jendela** (lebar × tinggi) yang mengubah bentuk
-    jendela di simulasi → **estimasi harga otomatis**
+- **Simulator Gorden 3D** (Three.js / React Three Fiber):
+  - Ruangan **3D nyata** — putar dengan klik-seret, zoom dengan scroll
+  - Tombol **🎥 Tour Ruangan** — kamera berkeliling otomatis
+  - **6 ruangan** preset (ruang tamu, kamar, kamar anak, ruang makan, dapur, kantor),
+    masing-masing dengan tema warna & dekorasi (tanaman, hiasan dinding, karpet)
+  - 4 model header: Lipat, Gelombang, Smokring, Vitrase
+  - **12 motif kain**: Polos, Garis, Garis H., Kotak, Titik, Bunga, Daun, Chevron,
+    Ombak, Bintang, Geometris, Damask
+  - Warna swatch + **warna kustom**, slider **buka/tutup**, lapisan **vitrase**
+  - Gorden **bergerak tertiup angin** + pencahayaan & bayangan realistis
+  - **Ukuran jendela** (preset + custom) mengubah bentuk jendela 3D → **estimasi harga**
   - **Unduh gambar** hasil simulasi (PNG)
-- **Katalog produk** dengan filter kategori, rating, dan swatch warna
-- **Keranjang belanja** (tersimpan di browser via `localStorage`)
+- **Katalog produk** dengan filter, rating, dan thumbnail motif
+- **Keranjang belanja** (tersimpan via `localStorage`)
 - **Checkout via WhatsApp** — pesanan otomatis terformat rapi
-- **Responsif** — nyaman di HP maupun desktop
+- **Responsif** untuk HP & desktop
 
-## 🚀 Menjalankan
-
-Cara paling mudah — buka langsung:
-
-```
-Buka index.html di browser (klik dua kali).
-```
-
-Atau jalankan lewat server lokal (disarankan agar fitur unggah foto lancar):
+## 🚀 Menjalankan (development)
 
 ```bash
-# Python
-python3 -m http.server 8000
-
-# atau Node
-npx serve .
+npm install
+npm run dev      # buka http://localhost:5173
 ```
 
-Lalu buka `http://localhost:8000`.
+## 🏗️ Build produksi
+
+```bash
+npm run build    # output ke folder dist/
+npm run preview  # cek hasil build secara lokal
+```
 
 ## ☁️ Deploy ke Vercel (uji coba online)
 
-Situs ini statis murni, jadi Vercel langsung melayaninya tanpa konfigurasi build.
-File `vercel.json` sudah disertakan.
-
-### Cara 1 — lewat Dashboard (paling mudah, tanpa CLI)
+### Cara 1 — Dashboard (paling mudah)
 
 1. Buka **https://vercel.com** dan login (bisa pakai akun GitHub).
-2. Klik **Add New… → Project**.
-3. Pilih **Import** repo `yoghisparingga/gorden`.
-4. Karena ini situs statis, biarkan semua pengaturan default
-   (Framework Preset: **Other**, tanpa Build Command), lalu klik **Deploy**.
-5. Tunggu ±1 menit → Vercel memberi URL seperti
-   `https://gorden-xxxx.vercel.app` untuk diuji coba.
+2. **Add New… → Project** → **Import** repo `yoghisparingga/gorden`.
+3. Vercel otomatis mendeteksi **Vite** (Build: `vite build`, Output: `dist`).
+   Biarkan default, klik **Deploy**.
+4. Tunggu ±1–2 menit → dapat URL `https://gorden-xxxx.vercel.app`.
 
-> Branch produksi otomatis mengikuti branch default repo, yaitu
-> `claude/curtain-sales-room-simulator-tih2qw`. Jika nanti repo punya branch
-> `main`, atur **Production Branch** di Settings → Git agar sesuai.
+> Branch produksi mengikuti branch default repo
+> (`claude/curtain-sales-room-simulator-tih2qw`). Atur di Settings → Git bila perlu.
 
-### Cara 2 — lewat Vercel CLI
+### Cara 2 — Vercel CLI
 
 ```bash
-npm i -g vercel     # sekali saja
-cd gorden
-vercel              # ikuti prompt login & konfirmasi (preview)
-vercel --prod       # rilis ke domain produksi
+npm i -g vercel
+vercel          # preview
+vercel --prod   # produksi
 ```
-
-Setelah terhubung ke GitHub, setiap `git push` ke branch ini otomatis
-membuat **Preview Deployment** baru.
 
 ## ⚙️ Konfigurasi Toko
 
-Edit `assets/js/data.js`:
+Edit `src/data.js`:
 
 - `TOKO.nama`, `TOKO.tagline`, `TOKO.alamat`, `TOKO.email`
-- `TOKO.whatsapp` — **nomor WhatsApp toko** (format internasional, mis. `6281234567890`)
-- `PRODUCTS` — tambah/ubah produk, harga per meter, warna, model, dll.
+- `TOKO.whatsapp` — **nomor WhatsApp toko** (format mis. `6281234567890`)
+- `PRODUCTS` — produk, harga/meter, warna, model, motif default
 
 ## 📁 Struktur
 
 ```
-index.html              Halaman utama (hero, simulator, katalog, dll)
-assets/css/styles.css   Seluruh styling
-assets/js/data.js       Data produk & konfigurasi toko
-assets/js/simulator.js  Mesin simulasi gorden berbasis Canvas
-assets/js/app.js        Logika UI: katalog, keranjang, kontrol, checkout
+index.html                 Entry Vite
+vite.config.js             Konfigurasi Vite
+vercel.json                Konfigurasi deploy
+src/
+  main.jsx, App.jsx        Root React
+  styles.css               Styling
+  data.js                  Data produk, motif, ruangan, ukuran, toko
+  store.js                 State global (zustand): simulator + keranjang
+  lib/
+    fabric.js              Tekstur kain prosedural (12 motif) + helper warna
+    price.js               Estimasi harga
+  sim/
+    Simulator.jsx          Bagian simulator (Canvas 3D + toolbar)
+    Scene.jsx              Ruangan 3D, lampu, jendela, kamera (orbit + tour)
+    Curtain.jsx            Panel gorden 3D (lipatan + animasi angin)
+    Controls.jsx           Panel kontrol simulator
+  components/              Header, Hero, Catalog, CartDrawer, Sections, Toast
 ```
+
+## 🧰 Stack
+
+React 18 · Vite 5 · Three.js · @react-three/fiber · zustand
 
 ## 📝 Catatan
 
 - Harga di keranjang adalah **estimasi**; harga final dikonfirmasi setelah pengukuran.
-- Gambar produk dibuat otomatis (gradient), jadi tidak perlu file foto eksternal.
-- Untuk publikasi gratis, situs ini bisa langsung di-deploy ke GitHub Pages,
-  Netlify, atau Vercel sebagai situs statis.
+- Thumbnail & motif dibuat otomatis (canvas), tanpa file gambar eksternal.
