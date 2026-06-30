@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gorden Asri — Penjualan & Simulasi Gorden Online</title>
+  <meta name="description" content="Belanja gorden & vitrase premium dan coba langsung di ruangan Anda lewat simulator gorden interaktif." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪟</text></svg>" />
+</head>
+<body>
+
+  <!-- ================= HEADER / NAV ================= -->
+  <header class="header">
+    <div class="container nav">
+      <a href="#" class="brand" data-nav="home">
+        <span class="brand-mark">🪟</span>
+        <span id="brand-name">Gorden Asri</span>
+      </a>
+      <nav id="nav-menu" class="nav-menu">
+        <a href="#" data-nav="katalog">Katalog</a>
+        <a href="#" data-nav="simulator">Simulasi Gorden</a>
+        <a href="#" data-nav="cara">Cara Pesan</a>
+        <a href="#" data-nav="kontak">Kontak</a>
+      </nav>
+      <div class="nav-actions">
+        <button id="cart-toggle" class="cart-btn" aria-label="Keranjang">
+          🛒 <span id="cart-count" class="cart-count">0</span>
+        </button>
+        <button id="menu-toggle" class="menu-toggle" aria-label="Menu">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= HERO ================= -->
+  <section id="home" class="hero">
+    <div class="container hero-grid">
+      <div class="hero-text">
+        <span class="hero-eyebrow">✨ Simulasi gorden tanpa perlu datang ke toko</span>
+        <h1 id="hero-tagline">Gorden & Vitrase Premium untuk Rumah Impian Anda</h1>
+        <p>Pilih model, warna, dan bahan — lalu lihat langsung tampilannya di ruangan Anda. Pesan mudah lewat WhatsApp, dipasang rapi oleh tim kami.</p>
+        <div class="hero-btns">
+          <button id="hero-cta" class="btn btn-primary btn-lg">🪟 Coba Simulator</button>
+          <button id="hero-cta2" class="btn btn-outline btn-lg">Lihat Katalog</button>
+        </div>
+        <div class="hero-stats">
+          <div><strong>7.000+</strong><span>Gorden terpasang</span></div>
+          <div><strong>4.8★</strong><span>Rating pelanggan</span></div>
+          <div><strong>Garansi</strong><span>Jahitan rapi</span></div>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-window">
+          <div class="hw-sky"></div>
+          <div class="hw-curtain hw-left"></div>
+          <div class="hw-curtain hw-right"></div>
+          <div class="hw-rod"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SIMULATOR ================= -->
+  <section id="simulator" class="section sim-section">
+    <div class="container">
+      <div class="section-head">
+        <h2>🪟 Simulasi Gorden Langsung</h2>
+        <p>Pilih ruangan (atau unggah foto Anda), lalu atur model, warna, dan buka-tutup gorden secara realtime.</p>
+      </div>
+
+      <div class="sim-layout">
+        <!-- Kanvas -->
+        <div class="sim-stage">
+          <canvas id="sim-canvas"></canvas>
+          <div class="sim-stage-bar">
+            <div class="sim-prodtag">
+              <strong id="sim-product-name">—</strong>
+              <small id="sim-product-cat">—</small>
+            </div>
+            <button id="sim-download" class="btn btn-ghost btn-sm">⬇️ Unduh Gambar</button>
+          </div>
+        </div>
+
+        <!-- Kontrol -->
+        <div class="sim-panel">
+          <div class="ctrl">
+            <label class="ctrl-label">Ruangan</label>
+            <div id="sim-rooms" class="room-grid"></div>
+          </div>
+
+          <!-- Upload zone (muncul saat pilih "Foto Saya") -->
+          <div id="upload-zone" class="upload-zone" style="display:none">
+            <input type="file" id="file-input" accept="image/*" hidden />
+            <label for="file-input" class="upload-drop">
+              <span class="up-ico">📷</span>
+              <strong>Klik atau seret foto ruangan ke sini</strong>
+              <small>JPG / PNG — foto jendela rumah Anda</small>
+            </label>
+            <div id="win-adjust" class="win-adjust" style="display:none">
+              <p class="hint">Atur posisi & ukuran gorden agar pas dengan jendela:</p>
+              <div class="mini-slider"><span>Geser ↔</span><input type="range" id="win-x" min="0" max="80" value="18" /></div>
+              <div class="mini-slider"><span>Geser ↕</span><input type="range" id="win-y" min="0" max="60" value="12" /></div>
+              <div class="mini-slider"><span>Lebar</span><input type="range" id="win-w" min="20" max="90" value="64" /></div>
+              <div class="mini-slider"><span>Tinggi</span><input type="range" id="win-h" min="20" max="85" value="66" /></div>
+            </div>
+          </div>
+
+          <div class="ctrl">
+            <label class="ctrl-label">Model Gorden</label>
+            <div id="sim-styles" class="seg-grid"></div>
+          </div>
+
+          <div class="ctrl">
+            <label class="ctrl-label">Warna</label>
+            <div class="color-row">
+              <div id="sim-colors" class="sw-row"></div>
+              <label class="custom-color" title="Warna kustom">
+                🎨 <input type="color" id="sim-custom-color" value="#2f3a4a" />
+              </label>
+            </div>
+          </div>
+
+          <div class="ctrl">
+            <label class="ctrl-label">Buka / Tutup Gorden</label>
+            <input type="range" id="sim-open" min="0" max="100" value="15" class="slider" />
+            <div class="slider-ends"><span>Tertutup</span><span>Terbuka</span></div>
+          </div>
+
+          <div class="ctrl ctrl-inline">
+            <label class="switch">
+              <input type="checkbox" id="sim-vitrase" checked />
+              <span class="switch-track"></span>
+            </label>
+            <span>Pasang lapisan vitrase (di belakang)</span>
+          </div>
+
+          <div class="ctrl">
+            <label class="ctrl-label">Ukuran Jendela (cm)</label>
+            <div class="size-row">
+              <div class="size-field">
+                <span>Lebar</span>
+                <input type="number" id="sim-lebar" value="200" min="50" max="600" />
+              </div>
+              <div class="size-field">
+                <span>Tinggi</span>
+                <input type="number" id="sim-tinggi" value="250" min="50" max="400" />
+              </div>
+            </div>
+          </div>
+
+          <div class="sim-foot">
+            <div class="sim-est">
+              <small>Estimasi harga</small>
+              <strong id="sim-price">Rp 0</strong>
+            </div>
+            <button id="sim-add" class="btn btn-primary">+ Keranjang</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= KATALOG ================= -->
+  <section id="katalog" class="section">
+    <div class="container">
+      <div class="section-head">
+        <h2>Katalog Gorden</h2>
+        <p>Pilihan gorden & vitrase terbaik untuk setiap ruangan.</p>
+      </div>
+      <div id="filters" class="filters"></div>
+      <div id="catalog" class="catalog-grid"></div>
+    </div>
+  </section>
+
+  <!-- ================= CARA PESAN ================= -->
+  <section id="cara" class="section section-alt">
+    <div class="container">
+      <div class="section-head">
+        <h2>Cara Pesan</h2>
+        <p>Hanya 4 langkah mudah sampai gorden terpasang rapi.</p>
+      </div>
+      <div class="steps">
+        <div class="step"><span class="step-num">1</span><h3>Simulasikan</h3><p>Coba model & warna gorden di ruangan Anda lewat simulator.</p></div>
+        <div class="step"><span class="step-num">2</span><h3>Masukkan Keranjang</h3><p>Tentukan ukuran jendela, lalu tambahkan ke keranjang.</p></div>
+        <div class="step"><span class="step-num">3</span><h3>Checkout WhatsApp</h3><p>Kirim pesanan ke kami, konfirmasi harga & jadwal ukur.</p></div>
+        <div class="step"><span class="step-num">4</span><h3>Pasang di Rumah</h3><p>Tim kami ukur akurat & memasang gorden dengan rapi.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= KONTAK ================= -->
+  <section id="kontak" class="section">
+    <div class="container cta-box">
+      <div>
+        <h2>Siap percantik ruangan Anda?</h2>
+        <p>Konsultasi gratis via WhatsApp — kami bantu pilih gorden yang pas.</p>
+      </div>
+      <a id="wa-link" class="btn btn-primary btn-lg" href="#" target="_blank" rel="noopener">💬 Chat WhatsApp</a>
+    </div>
+  </section>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="footer">
+    <div class="container footer-grid">
+      <div>
+        <div class="brand"><span class="brand-mark">🪟</span><strong id="footer-toko">Gorden Asri</strong></div>
+        <p class="footer-desc">Gorden & vitrase premium dengan layanan ukur dan pasang profesional.</p>
+      </div>
+      <div>
+        <h4>Kontak</h4>
+        <p>📍 <span id="footer-alamat"></span></p>
+        <p>✉️ <span id="footer-email"></span></p>
+      </div>
+      <div>
+        <h4>Menu</h4>
+        <a href="#" data-nav="katalog">Katalog</a>
+        <a href="#" data-nav="simulator">Simulasi</a>
+        <a href="#" data-nav="cara">Cara Pesan</a>
+      </div>
+    </div>
+    <div class="footer-bottom container">
+      © <span id="tahun"></span> <span id="footer-toko2">Gorden Asri</span>. Dibuat dengan ❤️ untuk rumah Anda.
+    </div>
+  </footer>
+
+  <!-- ================= CART DRAWER ================= -->
+  <div id="overlay" class="overlay"></div>
+  <aside id="cart-drawer" class="cart-drawer">
+    <div class="cart-header">
+      <h3>🛒 Keranjang Belanja</h3>
+      <button id="cart-close" class="cart-close">×</button>
+    </div>
+    <div id="cart-items" class="cart-items"></div>
+    <div class="cart-footer">
+      <div class="cart-total-row">
+        <span>Total estimasi</span>
+        <strong id="cart-total">Rp 0</strong>
+      </div>
+      <p class="cart-note">*Harga final dikonfirmasi setelah pengukuran.</p>
+      <button id="checkout-btn" class="btn btn-primary btn-block">💬 Checkout via WhatsApp</button>
+    </div>
+  </aside>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/simulator.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    // Set link WhatsApp di section kontak
+    document.getElementById("wa-link").href =
+      "https://wa.me/" + TOKO.whatsapp + "?text=" + encodeURIComponent("Halo " + TOKO.nama + ", saya mau konsultasi gorden.");
+    document.getElementById("footer-toko2").textContent = TOKO.nama;
+  </script>
+</body>
+</html>
