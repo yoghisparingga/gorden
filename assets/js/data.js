@@ -162,6 +162,9 @@ const SIZES = [
 const ROOMS = [
   { id: "ruang-tamu", nama: "Ruang Tamu", emoji: "🛋️" },
   { id: "kamar", nama: "Kamar Tidur", emoji: "🛏️" },
+  { id: "kamar-anak", nama: "Kamar Anak", emoji: "🧸" },
+  { id: "ruang-makan", nama: "Ruang Makan", emoji: "🍽️" },
+  { id: "dapur", nama: "Dapur", emoji: "🍳" },
   { id: "kantor", nama: "Kantor", emoji: "💼" },
   { id: "upload", nama: "Foto Saya", emoji: "📷" },
 ];

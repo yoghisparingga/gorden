@@ -11,6 +11,16 @@ const Simulator = (() => {
   let bgImage = null; // foto upload pengguna (Image) atau null
   let winRect = null; // area jendela aktif (rasio 0-1) yang dihitung saat render
 
+  // Tema warna dinding/lantai per ruangan
+  const ROOM_THEME = {
+    "ruang-tamu": { wallTop: "#efe7da", wallBottom: "#e0d4c1", floor: "#c2a079", accent: "#7e9b6e" },
+    "kamar": { wallTop: "#e8dfe6", wallBottom: "#d6c8d4", floor: "#b89a78", accent: "#b98aa0" },
+    "kamar-anak": { wallTop: "#e6f0f7", wallBottom: "#d4e6f2", floor: "#cdb89a", accent: "#f4b6c2" },
+    "ruang-makan": { wallTop: "#f3e7d6", wallBottom: "#e8d3b8", floor: "#a9794f", accent: "#c98b3a" },
+    "dapur": { wallTop: "#eef1ec", wallBottom: "#dde6dc", floor: "#b9b1a4", accent: "#8fae9b" },
+    "kantor": { wallTop: "#e9edf1", wallBottom: "#d3dae1", floor: "#9aa3ab", accent: "#5b7d9a" },
+  };
+
   // State konfigurasi simulasi
   const state = {
     room: "ruang-tamu", // preset room id atau 'upload'
@@ -97,24 +107,16 @@ const Simulator = (() => {
 
   /* ----------------------- Gambar ruangan ----------------------- */
   function drawRoomPreset(W, H) {
-    const room = state.room;
-    let wallTop, wallBottom, floor;
-    if (room === "kamar") {
-      wallTop = "#e8dfe6"; wallBottom = "#d6c8d4"; floor = "#b89a78";
-    } else if (room === "kantor") {
-      wallTop = "#e9edf1"; wallBottom = "#d3dae1"; floor = "#9aa3ab";
-    } else {
-      wallTop = "#efe7da"; wallBottom = "#e0d4c1"; floor = "#c2a079";
-    }
+    const t = ROOM_THEME[state.room] || ROOM_THEME["ruang-tamu"];
 
     const wallH = H * 0.82;
     const g = ctx.createLinearGradient(0, 0, 0, wallH);
-    g.addColorStop(0, wallTop);
-    g.addColorStop(1, wallBottom);
+    g.addColorStop(0, t.wallTop);
+    g.addColorStop(1, t.wallBottom);
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, wallH);
 
-    ctx.fillStyle = floor;
+    ctx.fillStyle = t.floor;
     ctx.beginPath();
     ctx.moveTo(0, wallH);
     ctx.lineTo(W, wallH);
@@ -184,6 +186,82 @@ const Simulator = (() => {
     ctx.strokeStyle = "rgba(0,0,0,0.08)";
     ctx.lineWidth = 2;
     ctx.strokeRect(x + frame / 2, y + frame / 2, w - frame, h - frame);
+  }
+
+  /* ----------------------- Dekorasi ruangan ----------------------- */
+  function drawDecor(W, H) {
+    const room = state.room;
+    const t = ROOM_THEME[room] || ROOM_THEME["ruang-tamu"];
+    const wallH = H * 0.82;
+    // Skirting / baseboard
+    ctx.fillStyle = "rgba(0,0,0,0.06)";
+    ctx.fillRect(0, wallH - 4, W, 5);
+
+    switch (room) {
+      case "ruang-tamu":
+        drawPlant(W * 0.1, H * 0.9, H * 0.17, "#b5774a");
+        break;
+      case "ruang-makan":
+        drawWallFrame(W * 0.07, H * 0.2, W * 0.1, H * 0.15, t.accent);
+        drawPlant(W * 0.9, H * 0.9, H * 0.15, "#9c5b33");
+        break;
+      case "dapur":
+        drawPlant(W * 0.1, H * 0.9, H * 0.13, "#cfcabe");
+        drawWallFrame(W * 0.85, H * 0.22, W * 0.09, H * 0.12, t.accent);
+        break;
+      case "kamar":
+        drawWallFrame(W * 0.84, H * 0.2, W * 0.1, H * 0.15, t.accent);
+        break;
+      case "kamar-anak":
+        drawWallFrame(W * 0.07, H * 0.2, W * 0.09, H * 0.13, t.accent);
+        drawWallFrame(W * 0.85, H * 0.24, W * 0.08, H * 0.11, "#a8d8ea");
+        break;
+      case "kantor":
+        drawWallFrame(W * 0.85, H * 0.19, W * 0.1, H * 0.16, t.accent);
+        drawPlant(W * 0.09, H * 0.9, H * 0.13, "#8a9a8f");
+        break;
+    }
+  }
+
+  function drawPlant(cx, baseY, s, potColor) {
+    // Daun
+    ctx.fillStyle = "#5d7e54";
+    for (const a of [-0.7, -0.25, 0.25, 0.7]) {
+      ctx.save();
+      ctx.translate(cx, baseY - s * 0.5);
+      ctx.rotate(a);
+      ctx.beginPath();
+      ctx.ellipse(0, -s * 0.55, s * 0.15, s * 0.6, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+    ctx.fillStyle = "#6f945f";
+    ctx.beginPath();
+    ctx.ellipse(cx, baseY - s * 1.05, s * 0.2, s * 0.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Pot
+    ctx.fillStyle = potColor;
+    ctx.beginPath();
+    ctx.moveTo(cx - s * 0.5, baseY - s * 0.5);
+    ctx.lineTo(cx + s * 0.5, baseY - s * 0.5);
+    ctx.lineTo(cx + s * 0.36, baseY);
+    ctx.lineTo(cx - s * 0.36, baseY);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = "rgba(0,0,0,0.08)";
+    ctx.fillRect(cx - s * 0.5, baseY - s * 0.5, s, s * 0.08);
+  }
+
+  function drawWallFrame(x, y, w, h, accent) {
+    ctx.fillStyle = "rgba(255,255,255,0.7)";
+    ctx.fillRect(x - 3, y - 3, w + 6, h + 6);
+    ctx.fillStyle = accent;
+    ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = "rgba(255,255,255,0.35)";
+    ctx.beginPath();
+    ctx.arc(x + w * 0.5, y + h * 0.42, Math.min(w, h) * 0.22, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillRect(x + w * 0.18, y + h * 0.62, w * 0.64, h * 0.08);
   }
 
   function drawRod(W, H) {
@@ -440,6 +518,7 @@ const Simulator = (() => {
     } else {
       drawRoomPreset(W, H);
       drawWindow(W, H);
+      drawDecor(W, H);
     }
 
     const wx = winRect.x * W;
