@@ -63,6 +63,7 @@ const App = (() => {
     const thumb = document.createElement("div");
     thumb.className = "card-thumb";
     thumb.appendChild(makeFabricPreview(p.colors[0]));
+    addMotifOverlay(thumb, p.motif);
     if (p.badge) {
       const badge = document.createElement("span");
       badge.className = "badge";
@@ -122,6 +123,20 @@ const App = (() => {
     return d;
   }
 
+  function addMotifOverlay(thumb, motif) {
+    if (!motif || motif === "polos") return;
+    if (["garis", "kotak", "titik"].includes(motif)) {
+      const o = document.createElement("div");
+      o.className = "fabric-overlay pv-card-" + motif;
+      thumb.appendChild(o);
+    }
+    const m = MOTIFS.find((x) => x.id === motif);
+    const tag = document.createElement("span");
+    tag.className = "motif-tag";
+    tag.textContent = (m && m.icon ? m.icon + " " : "") + (m ? m.nama : motif);
+    thumb.appendChild(tag);
+  }
+
   function shadeCss(hex, amt) {
     const h = hex.replace("#", "");
     const v = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
@@ -139,6 +154,7 @@ const App = (() => {
       style: p.style,
       opacity: p.opacity,
       sheerProduct: p.sheer,
+      motif: p.motif || "polos",
     });
     // Update panel info & kontrol
     document.getElementById("sim-product-name").textContent = p.nama;
@@ -165,6 +181,10 @@ const App = (() => {
     // Set style aktif di tombol model
     document.querySelectorAll("#sim-styles .seg-btn").forEach((b) => {
       b.classList.toggle("active", b.dataset.style === p.style);
+    });
+    // Set motif aktif
+    document.querySelectorAll("#sim-motifs .motif-btn").forEach((b) => {
+      b.classList.toggle("active", b.dataset.motif === (p.motif || "polos"));
     });
     syncCustomColor(p.colors[0]);
     updatePriceEstimate();
@@ -206,6 +226,41 @@ const App = (() => {
       styleWrap.appendChild(b);
     });
 
+    // Motif kain
+    const motifWrap = document.getElementById("sim-motifs");
+    motifWrap.innerHTML = "";
+    MOTIFS.forEach((m, i) => {
+      const b = document.createElement("button");
+      b.className = "motif-btn" + (i === 0 ? " active" : "");
+      b.dataset.motif = m.id;
+      b.innerHTML = `<span class="motif-pv pv-${m.id}">${m.icon || ""}</span><small>${m.nama}</small>`;
+      b.onclick = () => {
+        document.querySelectorAll("#sim-motifs .motif-btn").forEach((x) => x.classList.remove("active"));
+        b.classList.add("active");
+        Simulator.set({ motif: m.id });
+      };
+      motifWrap.appendChild(b);
+    });
+
+    // Preset ukuran
+    const sizeWrap = document.getElementById("sim-sizes");
+    sizeWrap.innerHTML = "";
+    SIZES.forEach((s) => {
+      const b = document.createElement("button");
+      b.className = "size-chip";
+      b.dataset.size = s.id;
+      b.innerHTML = `<strong>${s.nama}</strong><small>${s.desc}</small>`;
+      b.onclick = () => {
+        document.getElementById("sim-lebar").value = s.lebar;
+        document.getElementById("sim-tinggi").value = s.tinggi;
+        Simulator.set({ lebar: s.lebar, tinggi: s.tinggi });
+        updateActiveSizeChip();
+        updatePriceEstimate();
+      };
+      sizeWrap.appendChild(b);
+    });
+    updateActiveSizeChip();
+
     // Buka/tutup slider
     const open = document.getElementById("sim-open");
     open.oninput = () => Simulator.set({ openness: parseFloat(open.value) / 100 });
@@ -228,6 +283,7 @@ const App = (() => {
     [lebar, tinggi].forEach((el) =>
       el.addEventListener("input", () => {
         Simulator.set({ lebar: +lebar.value || 0, tinggi: +tinggi.value || 0 });
+        updateActiveSizeChip();
         updatePriceEstimate();
       })
     );
@@ -259,6 +315,15 @@ const App = (() => {
 
   function updatePriceEstimate() {
     document.getElementById("sim-price").textContent = RUPIAH.format(estimatePrice());
+  }
+
+  function updateActiveSizeChip() {
+    const l = +document.getElementById("sim-lebar").value;
+    const t = +document.getElementById("sim-tinggi").value;
+    document.querySelectorAll("#sim-sizes .size-chip").forEach((c) => {
+      const s = SIZES.find((x) => x.id === c.dataset.size);
+      c.classList.toggle("active", s && s.lebar === l && s.tinggi === t);
+    });
   }
 
   function downloadSimulation() {

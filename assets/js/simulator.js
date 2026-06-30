@@ -2,26 +2,29 @@
  * simulator.js — Mesin simulasi gorden berbasis Canvas
  *
  * Menggambar ruangan (preset atau foto upload) lalu merender gorden di atas
- * jendela secara realtime: warna, model header, bahan (transparansi),
- * buka/tutup, lapisan vitrase, dan ukuran.
+ * jendela secara realtime: warna, motif, model header, bahan (transparansi),
+ * buka/tutup, lapisan vitrase, dan ukuran (mempengaruhi bentuk jendela).
  * ========================================================================= */
 
 const Simulator = (() => {
   let canvas, ctx;
   let bgImage = null; // foto upload pengguna (Image) atau null
+  let winRect = null; // area jendela aktif (rasio 0-1) yang dihitung saat render
 
   // State konfigurasi simulasi
   const state = {
     room: "ruang-tamu", // preset room id atau 'upload'
     color: "#2f3a4a",
+    motif: "polos", // polos | garis | kotak | titik | bunga | daun
     style: "lipat", // lipat | gelombang | smokring | vitrase
     opacity: 1.0, // 1 = solid, <1 = tembus cahaya
     openness: 0.15, // 0 = tertutup penuh, 1 = terbuka penuh ke samping
     vitrase: true, // tampilkan lapisan vitrase di belakang
-    // Posisi & ukuran area jendela (rasio 0-1 terhadap kanvas) — bisa diatur saat mode upload
+    sheerProduct: false,
+    // Posisi & ukuran jendela untuk mode UPLOAD (rasio 0-1) — diatur via slider
     win: { x: 0.18, y: 0.12, w: 0.64, h: 0.66 },
-    lebar: 200, // cm — untuk estimasi harga
-    tinggi: 250, // cm
+    lebar: 150, // cm — mempengaruhi rasio jendela & estimasi harga
+    tinggi: 200, // cm
   };
 
   function init(canvasEl) {
@@ -35,7 +38,6 @@ const Simulator = (() => {
   }
 
   function resize() {
-    // Render beresolusi tinggi agar tajam di layar retina
     const ratio = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
     const w = rect.width || 720;
@@ -70,7 +72,6 @@ const Simulator = (() => {
     return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
   }
   function shade(hex, amt) {
-    // amt: -1..1 (negatif=gelap, positif=terang)
     const { r, g, b } = hexToRgb(hex);
     const f = (c) =>
       Math.max(0, Math.min(255, Math.round(amt < 0 ? c * (1 + amt) : c + (255 - c) * amt)));
@@ -81,10 +82,22 @@ const Simulator = (() => {
     return `rgba(${r},${g},${b},${a})`;
   }
 
+  /* ----------------------- Hitung area jendela dari ukuran ----------------------- */
+  function presetWindow(W, H) {
+    // Rasio jendela mengikuti rasio nyata lebar:tinggi yang dipilih pengguna
+    const ar = (state.lebar || 150) / (state.tinggi || 200); // lebar/tinggi nyata
+    let th = 0.6; // tinggi target (fraksi kanvas)
+    let tw = th * (H / W) * ar; // lebar agar rasio layar = rasio nyata
+    const maxW = 0.82, minW = 0.34;
+    if (tw > maxW) { tw = maxW; th = (tw * (W / H)) / ar; }
+    if (tw < minW) { tw = minW; th = (tw * (W / H)) / ar; }
+    th = Math.min(th, 0.7);
+    return { x: (1 - tw) / 2, y: 0.14, w: tw, h: th };
+  }
+
   /* ----------------------- Gambar ruangan ----------------------- */
   function drawRoomPreset(W, H) {
     const room = state.room;
-    // Lantai & dinding dasar bergantung tema ruangan
     let wallTop, wallBottom, floor;
     if (room === "kamar") {
       wallTop = "#e8dfe6"; wallBottom = "#d6c8d4"; floor = "#b89a78";
@@ -94,7 +107,6 @@ const Simulator = (() => {
       wallTop = "#efe7da"; wallBottom = "#e0d4c1"; floor = "#c2a079";
     }
 
-    // Dinding
     const wallH = H * 0.82;
     const g = ctx.createLinearGradient(0, 0, 0, wallH);
     g.addColorStop(0, wallTop);
@@ -102,7 +114,6 @@ const Simulator = (() => {
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, wallH);
 
-    // Lantai dengan perspektif sederhana
     ctx.fillStyle = floor;
     ctx.beginPath();
     ctx.moveTo(0, wallH);
@@ -111,7 +122,6 @@ const Simulator = (() => {
     ctx.lineTo(0, H);
     ctx.closePath();
     ctx.fill();
-    // Garis papan lantai
     ctx.strokeStyle = "rgba(0,0,0,0.06)";
     ctx.lineWidth = 1;
     for (let i = 1; i < 8; i++) {
@@ -122,7 +132,6 @@ const Simulator = (() => {
       ctx.stroke();
     }
 
-    // Bayangan plafon
     const tg = ctx.createLinearGradient(0, 0, 0, H * 0.12);
     tg.addColorStop(0, "rgba(0,0,0,0.10)");
     tg.addColorStop(1, "rgba(0,0,0,0)");
@@ -131,13 +140,11 @@ const Simulator = (() => {
   }
 
   function drawWindow(W, H) {
-    const win = state.win;
-    const x = win.x * W;
-    const y = win.y * H;
-    const w = win.w * W;
-    const h = win.h * H;
+    const x = winRect.x * W;
+    const y = winRect.y * H;
+    const w = winRect.w * W;
+    const h = winRect.h * H;
 
-    // Pemandangan luar jendela (langit + cahaya)
     const sky = ctx.createLinearGradient(0, y, 0, y + h);
     sky.addColorStop(0, "#bfe3f5");
     sky.addColorStop(0.6, "#dff0f7");
@@ -145,7 +152,6 @@ const Simulator = (() => {
     ctx.fillStyle = sky;
     ctx.fillRect(x, y, w, h);
 
-    // Siluet pemandangan
     ctx.fillStyle = "rgba(120,160,120,0.45)";
     ctx.beginPath();
     ctx.moveTo(x, y + h * 0.78);
@@ -158,18 +164,15 @@ const Simulator = (() => {
     ctx.closePath();
     ctx.fill();
 
-    // Matahari
     ctx.fillStyle = "rgba(255,243,200,0.9)";
     ctx.beginPath();
     ctx.arc(x + w * 0.75, y + h * 0.22, Math.min(w, h) * 0.07, 0, Math.PI * 2);
     ctx.fill();
 
-    // Kusen jendela
     const frame = Math.max(8, w * 0.022);
     ctx.strokeStyle = "#ffffff";
     ctx.lineWidth = frame;
     ctx.strokeRect(x, y, w, h);
-    // Pembagi kaca
     ctx.lineWidth = frame * 0.6;
     ctx.beginPath();
     ctx.moveTo(x + w / 2, y);
@@ -178,17 +181,15 @@ const Simulator = (() => {
     ctx.lineTo(x + w, y + h / 2);
     ctx.stroke();
 
-    // Bayangan dalam kusen
     ctx.strokeStyle = "rgba(0,0,0,0.08)";
     ctx.lineWidth = 2;
     ctx.strokeRect(x + frame / 2, y + frame / 2, w - frame, h - frame);
   }
 
   function drawRod(W, H) {
-    const win = state.win;
-    const x = win.x * W;
-    const y = win.y * H;
-    const w = win.w * W;
+    const x = winRect.x * W;
+    const y = winRect.y * H;
+    const w = winRect.w * W;
     const overhang = w * 0.06;
     const rodY = y - H * 0.04;
     const rodH = Math.max(6, H * 0.012);
@@ -201,7 +202,6 @@ const Simulator = (() => {
     roundRect(x - overhang, rodY, w + overhang * 2, rodH, rodH / 2);
     ctx.fill();
 
-    // Finial (ujung rel) kiri & kanan
     ctx.fillStyle = "#7a6043";
     ctx.beginPath();
     ctx.arc(x - overhang, rodY + rodH / 2, rodH * 0.95, 0, Math.PI * 2);
@@ -219,22 +219,109 @@ const Simulator = (() => {
     ctx.closePath();
   }
 
+  /* ----------------------- Motif kain ----------------------- */
+  /* Digambar di atas lipatan dengan blending agar tetap mengikuti bayangan
+   * lipatan (terlihat seperti kain bermotif, bukan stiker datar). */
+  function drawPattern(motif, x, y, w, h) {
+    if (!motif || motif === "polos") return;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(x, y, w, h);
+    ctx.clip();
+
+    if (motif === "garis") {
+      ctx.globalCompositeOperation = "multiply";
+      const band = Math.max(8, h * 0.055);
+      for (let yy = y; yy < y + h; yy += band * 2) {
+        ctx.fillStyle = "rgba(0,0,0,0.14)";
+        ctx.fillRect(x, yy, w, band);
+      }
+    } else if (motif === "kotak") {
+      ctx.globalCompositeOperation = "multiply";
+      const step = Math.max(20, w / 7);
+      ctx.fillStyle = "rgba(0,0,0,0.11)";
+      for (let yy = y; yy < y + h; yy += step) ctx.fillRect(x, yy, w, step * 0.4);
+      for (let xx = x; xx < x + w; xx += step) ctx.fillRect(xx, y, step * 0.4, h);
+    } else if (motif === "titik") {
+      ctx.globalCompositeOperation = "soft-light";
+      const step = Math.max(20, w / 7);
+      ctx.fillStyle = "rgba(255,255,255,0.75)";
+      let row = 0;
+      for (let yy = y + step / 2; yy < y + h; yy += step, row++) {
+        const off = (row % 2) * (step / 2);
+        for (let xx = x + step / 2 + off; xx < x + w; xx += step) {
+          ctx.beginPath();
+          ctx.arc(xx, yy, step * 0.13, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    } else if (motif === "bunga") {
+      ctx.globalCompositeOperation = "soft-light";
+      const step = Math.max(46, w / 3.4);
+      let row = 0;
+      for (let yy = y + step / 2; yy < y + h; yy += step, row++) {
+        const off = (row % 2) * (step / 2);
+        for (let xx = x + step / 2 + off; xx < x + w; xx += step) {
+          drawFlower(xx, yy, step * 0.2);
+        }
+      }
+    } else if (motif === "daun") {
+      ctx.globalCompositeOperation = "multiply";
+      const step = Math.max(50, w / 3);
+      let row = 0;
+      for (let yy = y + step / 2; yy < y + h; yy += step, row++) {
+        const off = (row % 2) * (step / 2);
+        for (let xx = x + step / 2 + off; xx < x + w; xx += step) {
+          drawLeaf(xx, yy, step * 0.32, row % 2 ? 0.7 : -0.6);
+        }
+      }
+    }
+    ctx.restore();
+  }
+
+  function drawFlower(cx, cy, r) {
+    ctx.fillStyle = "rgba(255,255,255,0.6)";
+    for (let i = 0; i < 5; i++) {
+      const a = (i / 5) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.ellipse(cx + Math.cos(a) * r * 0.7, cy + Math.sin(a) * r * 0.7, r * 0.55, r * 0.3, a, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.fillStyle = "rgba(0,0,0,0.18)";
+    ctx.beginPath();
+    ctx.arc(cx, cy, r * 0.34, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function drawLeaf(cx, cy, s, rot) {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(rot);
+    ctx.fillStyle = "rgba(0,0,0,0.2)";
+    ctx.beginPath();
+    ctx.ellipse(0, 0, s, s * 0.4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,0.14)";
+    ctx.lineWidth = Math.max(1, s * 0.06);
+    ctx.beginPath();
+    ctx.moveTo(-s, 0);
+    ctx.lineTo(s, 0);
+    ctx.stroke();
+    ctx.restore();
+  }
+
   /* ----------------------- Gambar panel gorden ----------------------- */
-  /* Menggambar satu panel gorden dengan lipatan (folds) realistis.
-   * side: 'left' | 'right' — menentukan arah kumpulan saat terbuka. */
   function drawPanel(opts) {
-    const { x, y, w, h, color, opacity, style, folds, side } = opts;
+    const { x, y, w, h, color, opacity, style, motif, folds } = opts;
 
     ctx.save();
     ctx.globalAlpha = opacity;
 
     const foldW = w / folds;
-    // Header offset (tinggi area header berbeda per style)
     const headerH = style === "smokring" ? h * 0.04 : h * 0.06;
 
     for (let i = 0; i < folds; i++) {
       const fx = x + i * foldW;
-      // Gradient melintang tiap lipatan: sisi gelap -> terang -> gelap
       const g = ctx.createLinearGradient(fx, 0, fx + foldW, 0);
       g.addColorStop(0, shade(color, -0.32));
       g.addColorStop(0.32, shade(color, 0.14));
@@ -243,19 +330,21 @@ const Simulator = (() => {
       g.addColorStop(1, shade(color, -0.34));
       ctx.fillStyle = g;
 
-      // Tepi bawah sedikit melengkung (kain jatuh)
       const sag = h * 0.012 * Math.sin((i / folds) * Math.PI);
       ctx.beginPath();
       ctx.moveTo(fx, y + headerH);
       ctx.lineTo(fx + foldW, y + headerH);
       ctx.lineTo(fx + foldW, y + h + sag);
-      // lengkung bawah
       ctx.quadraticCurveTo(fx + foldW / 2, y + h + sag + h * 0.02, fx, y + h + sag);
       ctx.closePath();
       ctx.fill();
     }
 
-    // Header sesuai style
+    // Motif kain (di atas lipatan, mengikuti bayangan)
+    if (style !== "vitrase") {
+      drawPattern(motif, x, y + headerH, w, h - headerH);
+    }
+
     drawHeader(x, y, w, h, color, style, folds);
 
     ctx.restore();
@@ -264,7 +353,6 @@ const Simulator = (() => {
   function drawHeader(x, y, w, h, color, style, folds) {
     const foldW = w / folds;
     if (style === "smokring") {
-      // Ring eyelet di atas
       const ringR = Math.min(foldW * 0.28, h * 0.02);
       ctx.fillStyle = shade(color, -0.1);
       ctx.fillRect(x, y, w, h * 0.03);
@@ -277,7 +365,6 @@ const Simulator = (() => {
         ctx.stroke();
       }
     } else if (style === "lipat") {
-      // Pinch pleat: jepitan di tiap pertemuan lipatan
       for (let i = 0; i <= folds; i += 1) {
         const cx = x + i * foldW;
         ctx.fillStyle = shade(color, -0.28);
@@ -289,7 +376,6 @@ const Simulator = (() => {
         ctx.fill();
       }
     } else if (style === "gelombang") {
-      // Wave: tepi atas bergelombang halus
       ctx.fillStyle = shade(color, -0.18);
       ctx.beginPath();
       ctx.moveTo(x, y + h * 0.05);
@@ -302,7 +388,6 @@ const Simulator = (() => {
       ctx.closePath();
       ctx.fill();
     } else {
-      // vitrase / rod pocket: kerutan halus
       ctx.fillStyle = shade(color, -0.12);
       ctx.fillRect(x, y, w, h * 0.04);
     }
@@ -310,12 +395,10 @@ const Simulator = (() => {
 
   /* ----------------------- Lapisan vitrase ----------------------- */
   function drawSheerLayer(W, H) {
-    const win = state.win;
-    const x = win.x * W;
-    const y = win.y * H - H * 0.02;
-    const w = win.w * W;
-    const h = win.h * H + H * 0.08;
-    // Vitrase selalu menutup penuh di belakang (privasi)
+    const x = winRect.x * W;
+    const y = winRect.y * H - H * 0.02;
+    const w = winRect.w * W;
+    const h = winRect.h * H + H * 0.08;
     const folds = Math.max(10, Math.round(w / 22));
     const foldW = w / folds;
     ctx.save();
@@ -338,7 +421,10 @@ const Simulator = (() => {
     const H = canvas._h;
     ctx.clearRect(0, 0, W, H);
 
-    // 1) Latar: foto upload atau ruangan preset
+    // Tentukan area jendela: mode upload pakai pengaturan manual, lainnya ikut ukuran
+    winRect = state.room === "upload" ? state.win : presetWindow(W, H);
+
+    // 1) Latar
     if (state.room === "upload" && bgImage) {
       drawCover(bgImage, W, H);
     } else if (state.room === "upload" && !bgImage) {
@@ -356,11 +442,10 @@ const Simulator = (() => {
       drawWindow(W, H);
     }
 
-    const win = state.win;
-    const wx = win.x * W;
-    const wy = win.y * H;
-    const ww = win.w * W;
-    const wh = win.h * H;
+    const wx = winRect.x * W;
+    const wy = winRect.y * H;
+    const ww = winRect.w * W;
+    const wh = winRect.h * H;
 
     // 2) Lapisan vitrase (di belakang gorden utama)
     if (state.vitrase && state.style !== "vitrase") {
@@ -371,43 +456,25 @@ const Simulator = (() => {
     drawRod(W, H);
 
     // 4) Gorden utama — dua panel kiri & kanan
-    const isSheer = state.style === "vitrase" || state.sheerProduct;
     const baseOpacity = state.style === "vitrase" ? 0.5 : state.opacity;
-
     const top = wy - H * 0.05;
     const bottom = wy + wh + H * 0.06;
     const panelH = bottom - top;
 
-    // openness: 0 tertutup (tiap panel 50% lebar) → 1 terbuka (panel mengumpul ~12%)
-    const closedW = ww * 0.52; // sedikit overlap di tengah saat tertutup
+    const closedW = ww * 0.52;
     const openW = ww * 0.14;
     const panelW = closedW - (closedW - openW) * state.openness;
-
     const folds = Math.max(6, Math.round(panelW / 18));
 
-    // Panel kiri (menempel kiri)
     drawPanel({
-      x: wx - ww * 0.04,
-      y: top,
-      w: panelW,
-      h: panelH,
-      color: state.color,
-      opacity: baseOpacity,
-      style: state.style,
-      folds,
-      side: "left",
+      x: wx - ww * 0.04, y: top, w: panelW, h: panelH,
+      color: state.color, opacity: baseOpacity, style: state.style,
+      motif: state.motif, folds,
     });
-    // Panel kanan (menempel kanan)
     drawPanel({
-      x: wx + ww + ww * 0.04 - panelW,
-      y: top,
-      w: panelW,
-      h: panelH,
-      color: state.color,
-      opacity: baseOpacity,
-      style: state.style,
-      folds,
-      side: "right",
+      x: wx + ww + ww * 0.04 - panelW, y: top, w: panelW, h: panelH,
+      color: state.color, opacity: baseOpacity, style: state.style,
+      motif: state.motif, folds,
     });
 
     // 5) Cahaya jatuh dari jendela ke lantai (hanya preset)
@@ -438,7 +505,6 @@ const Simulator = (() => {
     ctx.drawImage(img, dx, dy, dw, dh);
   }
 
-  /* Ekspor gambar simulasi sebagai data URL (untuk diunduh/dibagikan) */
   function toDataURL() {
     return canvas.toDataURL("image/png");
   }

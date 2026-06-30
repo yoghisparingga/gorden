@@ -26,6 +26,7 @@ const PRODUCTS = [
     id: "blackout-luxe",
     nama: "Blackout Luxe",
     kategori: "Blackout",
+    motif: "polos",
     style: "lipat",
     sheer: false,
     opacity: 1.0,
@@ -43,6 +44,7 @@ const PRODUCTS = [
     id: "vitrase-sheer",
     nama: "Vitrase Sheer Elegant",
     kategori: "Vitrase",
+    motif: "polos",
     style: "vitrase",
     sheer: true,
     opacity: 0.4,
@@ -60,6 +62,7 @@ const PRODUCTS = [
     id: "semi-blackout-linen",
     nama: "Semi Blackout Linen",
     kategori: "Semi Blackout",
+    motif: "garis",
     style: "gelombang",
     sheer: false,
     opacity: 0.85,
@@ -77,6 +80,7 @@ const PRODUCTS = [
     id: "minimalis-polos",
     nama: "Minimalis Polos",
     kategori: "Minimalis",
+    motif: "polos",
     style: "smokring",
     sheer: false,
     opacity: 0.95,
@@ -94,6 +98,7 @@ const PRODUCTS = [
     id: "motif-tropis",
     nama: "Motif Tropis",
     kategori: "Motif",
+    motif: "daun",
     style: "lipat",
     sheer: false,
     opacity: 0.9,
@@ -111,6 +116,7 @@ const PRODUCTS = [
     id: "kids-pastel",
     nama: "Kids Pastel",
     kategori: "Anak",
+    motif: "titik",
     style: "smokring",
     sheer: false,
     opacity: 0.9,
@@ -132,6 +138,24 @@ const STYLES = [
   { id: "gelombang", nama: "Gelombang (Wave)", desc: "Jatuh kain modern" },
   { id: "smokring", nama: "Smokring (Eyelet)", desc: "Ring praktis" },
   { id: "vitrase", nama: "Vitrase (Sheer)", desc: "Tipis tembus cahaya" },
+];
+
+/* Pilihan motif kain gorden untuk simulator */
+const MOTIFS = [
+  { id: "polos", nama: "Polos", icon: "" },
+  { id: "garis", nama: "Garis", icon: "" },
+  { id: "kotak", nama: "Kotak", icon: "" },
+  { id: "titik", nama: "Titik", icon: "" },
+  { id: "bunga", nama: "Bunga", icon: "🌸" },
+  { id: "daun", nama: "Daun", icon: "🌿" },
+];
+
+/* Preset ukuran jendela (cm). Mengubah bentuk jendela & gorden di simulator. */
+const SIZES = [
+  { id: "kecil", nama: "Kecil", lebar: 100, tinggi: 150, desc: "100 × 150" },
+  { id: "sedang", nama: "Sedang", lebar: 150, tinggi: 200, desc: "150 × 200" },
+  { id: "besar", nama: "Besar", lebar: 200, tinggi: 250, desc: "200 × 250" },
+  { id: "pintu", nama: "Pintu/Sliding", lebar: 300, tinggi: 270, desc: "300 × 270" },
 ];
 
 /* Preset ruangan untuk simulator */
