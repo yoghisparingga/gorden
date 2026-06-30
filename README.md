@@ -9,10 +9,13 @@ Dibangun dengan **React + Vite + Three.js** (`@react-three/fiber`).
 ## ✨ Fitur
 
 - **Simulator Gorden 3D** (Three.js / React Three Fiber):
-  - Ruangan **3D nyata** — putar dengan klik-seret, zoom dengan scroll
-  - Tombol **🎥 Tour Ruangan** — kamera berkeliling otomatis
+  - 3 mode kamera: **🔄 Putar** (orbit), **🎥 Tour** (keliling otomatis),
+    **🚶 Jelajah** (jalan keliling ruangan — WASD/tombol arah + seret untuk melihat)
   - **6 ruangan** preset (ruang tamu, kamar, kamar anak, ruang makan, dapur, kantor),
-    masing-masing dengan tema warna & dekorasi (tanaman, hiasan dinding, karpet)
+    masing-masing dengan **furnitur 3D** (sofa, ranjang, meja makan, meja kerja, dll),
+    tema warna & dekorasi (tanaman, hiasan dinding, karpet)
+  - **📷 Mode Foto Saya** — unggah foto ruangan sendiri, gorden di-overlay di
+    atas jendela dengan posisi & ukuran yang bisa diatur
   - 4 model header: Lipat, Gelombang, Smokring, Vitrase
   - **12 motif kain**: Polos, Garis, Garis H., Kotak, Titik, Bunga, Daun, Chevron,
     Ombak, Bintang, Geometris, Damask

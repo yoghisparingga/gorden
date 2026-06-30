@@ -214,3 +214,14 @@ export function fabricThumb(color, motif) {
   drawMotif(ctx, motif, color);
   return cv.toDataURL();
 }
+
+/* Canvas tile motif (untuk createPattern di mode upload 2D) */
+export function makeTileCanvas(color, motif) {
+  const cv = document.createElement("canvas");
+  cv.width = cv.height = TILE;
+  const ctx = cv.getContext("2d");
+  ctx.fillStyle = color;
+  ctx.fillRect(0, 0, TILE, TILE);
+  drawMotif(ctx, motif, color);
+  return cv;
+}

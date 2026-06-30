@@ -2,12 +2,14 @@
  * Scene.jsx — Ruangan 3D: dinding/lantai, jendela + langit, lampu,
  * gorden, vitrase, dekorasi, dan kamera (orbit manual + mode tour).
  * ========================================================================= */
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { extend, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import Curtain from "./Curtain.jsx";
+import Furniture from "./Furniture.jsx";
 import { makeFabricTexture } from "../lib/fabric.js";
+import { useStore } from "../store.js";
 
 extend({ OrbitControls });
 
@@ -51,28 +53,102 @@ function lighten(hex, amt) {
   return `rgb(${f(r)},${f(g)},${f(b)})`;
 }
 
-function CameraRig({ tour }) {
+function CameraRig({ mode }) {
   const { camera, gl } = useThree();
   const controls = useRef();
   const tt = useRef(0);
   const target = useMemo(() => new THREE.Vector3(0, 1.45, -2), []);
+  const yaw = useRef(0);
+  const pitch = useRef(-0.05);
+  const wpos = useRef(new THREE.Vector3(0, 1.6, 2.2));
+  const drag = useRef(false);
+  const lastP = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    if (mode === "walk") {
+      wpos.current.set(0, 1.6, 2.2);
+      yaw.current = 0;
+      pitch.current = -0.05;
+      const dom = gl.domElement;
+      const down = (e) => { drag.current = true; lastP.current = { x: e.clientX, y: e.clientY }; };
+      const move = (e) => {
+        if (!drag.current) return;
+        yaw.current -= (e.clientX - lastP.current.x) * 0.005;
+        pitch.current = THREE.MathUtils.clamp(pitch.current - (e.clientY - lastP.current.y) * 0.005, -1.0, 1.0);
+        lastP.current = { x: e.clientX, y: e.clientY };
+      };
+      const up = () => { drag.current = false; };
+      const key = (e, v) => {
+        const k = e.key.toLowerCase();
+        if (k.startsWith("arrow")) e.preventDefault();
+        const n = useStore.getState().setNav;
+        if (k === "w" || e.key === "ArrowUp") n({ f: v });
+        else if (k === "s" || e.key === "ArrowDown") n({ b: v });
+        else if (k === "a" || e.key === "ArrowLeft") n({ l: v });
+        else if (k === "d" || e.key === "ArrowRight") n({ r: v });
+      };
+      const kd = (e) => key(e, true);
+      const ku = (e) => key(e, false);
+      dom.addEventListener("pointerdown", down);
+      window.addEventListener("pointermove", move);
+      window.addEventListener("pointerup", up);
+      window.addEventListener("keydown", kd);
+      window.addEventListener("keyup", ku);
+      return () => {
+        dom.removeEventListener("pointerdown", down);
+        window.removeEventListener("pointermove", move);
+        window.removeEventListener("pointerup", up);
+        window.removeEventListener("keydown", kd);
+        window.removeEventListener("keyup", ku);
+        useStore.getState().setNav({ f: false, b: false, l: false, r: false });
+      };
+    } else if (mode === "orbit") {
+      camera.position.set(0, 1.6, 3.7);
+      if (controls.current) {
+        controls.current.target.set(0, 1.45, -2);
+        controls.current.update();
+      }
+    }
+  }, [mode, camera, gl]);
+
   useFrame((_, dt) => {
-    if (tour) {
+    if (mode === "tour") {
       tt.current += dt;
       const a = Math.sin(tt.current * 0.22) * 0.95;
       const radius = 4.4 + Math.sin(tt.current * 0.17) * 0.7;
       const h = 1.6 + Math.sin(tt.current * 0.28) * 0.3;
       camera.position.set(target.x + Math.sin(a) * radius, h, target.z + Math.cos(a) * radius);
       camera.lookAt(target);
+    } else if (mode === "walk") {
+      const nav = useStore.getState().nav;
+      const speed = 2.2 * Math.min(dt, 0.05);
+      const fx = Math.sin(yaw.current), fz = -Math.cos(yaw.current);
+      const rx = Math.cos(yaw.current), rz = Math.sin(yaw.current);
+      const p = wpos.current;
+      if (nav.f) { p.x += fx * speed; p.z += fz * speed; }
+      if (nav.b) { p.x -= fx * speed; p.z -= fz * speed; }
+      if (nav.l) { p.x -= rx * speed; p.z -= rz * speed; }
+      if (nav.r) { p.x += rx * speed; p.z += rz * speed; }
+      p.x = THREE.MathUtils.clamp(p.x, -2.6, 2.6);
+      p.z = THREE.MathUtils.clamp(p.z, -2.2, 2.7);
+      p.y = 1.6;
+      camera.position.copy(p);
+      const cp = Math.cos(pitch.current);
+      camera.lookAt(
+        p.x + Math.sin(yaw.current) * cp,
+        p.y + Math.sin(pitch.current),
+        p.z - Math.cos(yaw.current) * cp
+      );
     } else if (controls.current) {
       controls.current.update();
     }
   });
+
   return (
     <orbitControls
       ref={controls}
       args={[camera, gl.domElement]}
-      enabled={!tour}
+      enabled={mode === "orbit"}
       enableDamping
       dampingFactor={0.08}
       target={[0, 1.45, -2]}
@@ -254,11 +330,12 @@ export default function Scene({ sim, room }) {
       <Curtain side="left" winW={winW} winH={winH} sill={sill} openness={sim.openness} texture={fabricTex} opacity={mainOpacity} z={wallZ + 0.32} />
       <Curtain side="right" winW={winW} winH={winH} sill={sill} openness={sim.openness} texture={fabricTex} opacity={mainOpacity} z={wallZ + 0.32} />
 
-      {/* Dekorasi ruangan */}
-      <Plant position={[-ROOM.W / 2 + 0.5, 0, -ROOM.D / 2 + 0.6]} pot={room.accent} />
+      {/* Furnitur & dekorasi ruangan */}
+      <Furniture room={sim.room} accent={room.accent} />
+      <Plant position={[ROOM.W / 2 - 0.5, 0, -ROOM.D / 2 + 0.6]} pot={room.accent} />
       <WallArt position={[-ROOM.W / 2 + 0.04, 1.7, -1.2]} color={room.accent} rotation={[0, Math.PI / 2, 0]} />
 
-      <CameraRig tour={sim.tour} />
+      <CameraRig mode={sim.mode} />
     </>
   );
 }

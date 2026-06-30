@@ -155,6 +155,7 @@ export const ROOMS = [
   { id: "ruang-makan", nama: "Ruang Makan", emoji: "🍽️", wall: "#f3e7d6", floor: "#a9794f", accent: "#c98b3a" },
   { id: "dapur", nama: "Dapur", emoji: "🍳", wall: "#eef1ec", floor: "#b9b1a4", accent: "#8fae9b" },
   { id: "kantor", nama: "Kantor", emoji: "💼", wall: "#e9edf1", floor: "#9aa3ab", accent: "#5b7d9a" },
+  { id: "upload", nama: "Foto Saya", emoji: "📷", wall: "#e9e9e9", floor: "#cccccc", accent: "#b07a4f" },
 ];
 
 export const RUPIAH = new Intl.NumberFormat("id-ID", {

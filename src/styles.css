@@ -87,14 +87,41 @@ h1, h2, h3, h4 { font-family: "Playfair Display", Georgia, serif; line-height: 1
 /* Simulator */
 .sim-section { background: linear-gradient(180deg, #fff 0%, var(--bg) 100%); }
 .sim-layout { display: grid; grid-template-columns: 1.45fr 1fr; gap: 1.8rem; align-items: start; }
-.sim-stage { background: #fff; border-radius: var(--radius); padding: 0.8rem; box-shadow: var(--shadow); }
+.sim-stage { position: relative; background: #fff; border-radius: var(--radius); padding: 0.8rem; box-shadow: var(--shadow); }
 .sim-canvas-wrap { position: relative; width: 100%; aspect-ratio: 4 / 3; border-radius: 12px; overflow: hidden; background: linear-gradient(#cdd6df, #e7e0d4); }
 .sim-canvas-wrap canvas { width: 100% !important; height: 100% !important; display: block; touch-action: none; }
-.sim-overlay-tools { position: absolute; top: 0.7rem; right: 0.7rem; display: flex; gap: 0.4rem; }
-.tool-btn { background: rgba(255,255,255,0.92); border: none; border-radius: 50px; padding: 0.45rem 0.85rem; font-family: inherit; font-size: 0.82rem; font-weight: 600; color: var(--ink); cursor: pointer; box-shadow: var(--shadow-sm); transition: background 0.15s; }
+.sim-overlay-tools { position: absolute; top: 1.4rem; right: 1.4rem; display: flex; align-items: center; gap: 0.4rem; z-index: 5; }
+.tool-btn { background: rgba(255,255,255,0.92); border: none; border-radius: 50px; padding: 0.45rem 0.7rem; font-family: inherit; font-size: 0.82rem; font-weight: 600; color: var(--ink); cursor: pointer; box-shadow: var(--shadow-sm); transition: background 0.15s; }
 .tool-btn:hover { background: #fff; }
-.tool-btn.on { background: var(--brand); color: #fff; }
-.sim-hint { position: absolute; bottom: 0.7rem; left: 0.7rem; background: rgba(44,42,38,0.6); color: #fff; font-size: 0.72rem; padding: 0.25rem 0.6rem; border-radius: 50px; pointer-events: none; }
+.mode-seg { display: flex; gap: 2px; background: rgba(255,255,255,0.92); border-radius: 50px; padding: 3px; box-shadow: var(--shadow-sm); }
+.mode-btn { border: none; background: transparent; border-radius: 50px; padding: 0.35rem 0.6rem; font-family: inherit; font-size: 0.76rem; font-weight: 600; color: var(--ink-soft); cursor: pointer; transition: all 0.15s; }
+.mode-btn:hover { color: var(--ink); }
+.mode-btn.on { background: var(--brand); color: #fff; }
+.sim-hint { position: absolute; bottom: 1.4rem; left: 1.4rem; background: rgba(44,42,38,0.6); color: #fff; font-size: 0.72rem; padding: 0.25rem 0.6rem; border-radius: 50px; pointer-events: none; }
+
+/* D-pad navigasi "Jelajah" */
+.dpad { position: absolute; right: 1.4rem; bottom: 3rem; display: grid; grid-template-columns: repeat(3, 36px); grid-template-rows: repeat(3, 36px); gap: 3px; z-index: 5; }
+.dbtn { background: rgba(44,42,38,0.55); color: #fff; border: none; border-radius: 8px; font-size: 0.85rem; cursor: pointer; touch-action: none; user-select: none; display: flex; align-items: center; justify-content: center; }
+.dbtn:active { background: var(--brand); }
+.dbtn.up { grid-area: 1 / 2; }
+.dbtn.left { grid-area: 2 / 1; }
+.dbtn.down { grid-area: 3 / 2; }
+.dbtn.right { grid-area: 2 / 3; }
+
+/* Mode upload foto */
+.upload-mode { display: flex; flex-direction: column; gap: 0.8rem; }
+.upload-mode .sim-canvas-wrap { background: #efeae1; }
+.upload-drop { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.3rem; cursor: pointer; text-align: center; padding: 1rem; background: rgba(240,236,228,0.55); border: 2px dashed var(--line); border-radius: 12px; transition: all 0.2s; }
+.upload-drop.drag { border-color: var(--brand); background: rgba(253,246,238,0.9); }
+.up-ico { font-size: 2rem; }
+.upload-drop strong { font-family: "Poppins", sans-serif; font-size: 0.95rem; }
+.upload-drop small { font-size: 0.78rem; color: var(--ink-soft); }
+.win-adjust { background: var(--bg-alt); border-radius: var(--radius-sm); padding: 0.85rem; }
+.win-adjust-head { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--ink-soft); margin-bottom: 0.6rem; }
+.reupload { background: #fff; border: 1px solid var(--line); border-radius: 50px; padding: 0.2rem 0.7rem; font-size: 0.76rem; font-weight: 600; cursor: pointer; color: var(--ink); }
+.mini-slider { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.4rem; }
+.mini-slider span { font-size: 0.74rem; width: 54px; color: var(--ink-soft); }
+.mini-slider input { flex: 1; }
 .sim-stage-bar { display: flex; align-items: center; justify-content: space-between; padding: 0.7rem 0.4rem 0.2rem; }
 .sim-prodtag { display: flex; flex-direction: column; }
 .sim-prodtag strong { font-family: "Poppins", sans-serif; font-size: 1rem; }

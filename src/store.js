@@ -36,9 +36,13 @@ export const useStore = create((set, get) => ({
     vitrase: true,
     lebar: 150,
     tinggi: 200,
-    tour: false, // mode tour kamera otomatis
+    mode: "orbit", // kamera: 'orbit' (putar) | 'tour' (keliling otomatis) | 'walk' (jelajah)
   },
   setSim: (partial) => set((s) => ({ sim: { ...s.sim, ...partial } })),
+
+  // Tombol arah navigasi mode "Jelajah" (dibaca per-frame, tidak memicu re-render)
+  nav: { f: false, b: false, l: false, r: false },
+  setNav: (partial) => set((s) => ({ nav: { ...s.nav, ...partial } })),
 
   selectProduct: (p) =>
     set((s) => ({
