@@ -18,6 +18,9 @@ Dibangun dengan **React + Vite + Three.js** (`@react-three/fiber`).
   - **Mode kualitas ✨ Tinggi / ⚡ Hemat** dengan deteksi otomatis (HP →
     Hemat): mode hemat menonaktifkan efek berat (AO/bloom/animasi angin),
     membekukan shadow map, & menurunkan resolusi agar lancar di perangkat ringan
+  - **Render on-demand**: saat diam (mode Putar), simulator TIDAK me-render
+    (0 GPU) — hanya render saat diputar/zoom atau konfigurasi berubah.
+    Mode Tour/Jelajah render kontinu karena kamera bergerak
   - 3 mode kamera: **🔄 Putar** (orbit), **🎥 Tour** (keliling otomatis),
     **🚶 Jelajah** (jalan keliling ruangan — WASD/tombol arah + seret untuk melihat)
   - **6 ruangan** preset (ruang tamu, kamar, kamar anak, ruang makan, dapur, kantor),

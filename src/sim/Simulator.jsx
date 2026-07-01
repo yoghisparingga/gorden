@@ -86,6 +86,7 @@ export default function Simulator() {
               <div className="sim-canvas-wrap">
                 <Canvas
                   shadows="soft"
+                  frameloop={sim.mode === "orbit" ? "demand" : "always"}
                   dpr={quality === "tinggi" ? [1, 1.75] : 1}
                   gl={{ preserveDrawingBuffer: true, antialias: false, powerPreference: "high-performance" }}
                   camera={{ position: [0, 1.6, 3.7], fov: 50, near: 0.1, far: 100 }}

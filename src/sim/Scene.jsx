@@ -17,17 +17,18 @@ extend({ OrbitControls });
 
 /* Pencahayaan berbasis environment (soft reflections/IBL) */
 function Env() {
-  const { gl, scene } = useThree();
+  const { gl, scene, invalidate } = useThree();
   useEffect(() => {
     const pmrem = new THREE.PMREMGenerator(gl);
     const env = pmrem.fromScene(new RoomEnvironment(), 0.04);
     scene.environment = env.texture;
+    invalidate();
     return () => {
       env.texture.dispose();
       pmrem.dispose();
       scene.environment = null;
     };
-  }, [gl, scene]);
+  }, [gl, scene, invalidate]);
   return null;
 }
 
@@ -123,7 +124,7 @@ function lighten(hex, amt) {
 }
 
 function CameraRig({ mode }) {
-  const { camera, gl } = useThree();
+  const { camera, gl, invalidate } = useThree();
   const controls = useRef();
   const tt = useRef(0);
   const target = useMemo(() => new THREE.Vector3(0, 1.45, -2), []);
@@ -180,6 +181,15 @@ function CameraRig({ mode }) {
     }
   }, [mode, camera, gl]);
 
+  // Render on-demand: minta 1 frame tiap kali kamera diputar/zoom
+  useEffect(() => {
+    const c = controls.current;
+    if (!c) return;
+    const onChange = () => invalidate();
+    c.addEventListener("change", onChange);
+    return () => c.removeEventListener("change", onChange);
+  }, [invalidate]);
+
   useFrame((_, dt) => {
     if (mode === "tour") {
       tt.current += dt;
@@ -208,9 +218,8 @@ function CameraRig({ mode }) {
         p.y + Math.sin(pitch.current),
         p.z - Math.cos(yaw.current) * cp
       );
-    } else if (controls.current) {
-      controls.current.update();
     }
+    // Mode orbit: OrbitControls menggerakkan kamera sendiri + invalidate (on-demand)
   });
 
   return (
@@ -218,8 +227,6 @@ function CameraRig({ mode }) {
       ref={controls}
       args={[camera, gl.domElement]}
       enabled={mode === "orbit"}
-      enableDamping
-      dampingFactor={0.08}
       target={[0, 1.45, -2]}
       minDistance={1.8}
       maxDistance={5.6}
@@ -268,10 +275,11 @@ export default function Scene({ sim, room, quality = "tinggi" }) {
   const hi = quality === "tinggi";
   const sky = useMemo(() => makeSky(sim.waktu), [sim.waktu]);
   const L = LIGHTING[sim.waktu] || LIGHTING.siang;
-  const { gl } = useThree();
+  const { gl, invalidate } = useThree();
   useEffect(() => {
     gl.toneMappingExposure = L.exposure;
-  }, [gl, L]);
+    invalidate();
+  }, [gl, L, invalidate]);
 
   // Bekukan shadow map: hanya render ulang saat konfigurasi berubah, bukan tiap frame
   useEffect(() => {
@@ -280,7 +288,8 @@ export default function Scene({ sim, room, quality = "tinggi" }) {
   }, [gl]);
   useEffect(() => {
     gl.shadowMap.needsUpdate = true;
-  }, [gl, sim.room, sim.lebar, sim.tinggi, sim.openness, sim.style, sim.waktu, sim.vitrase, sim.color, sim.motif, quality]);
+    invalidate();
+  }, [gl, invalidate, sim.room, sim.lebar, sim.tinggi, sim.openness, sim.style, sim.waktu, sim.vitrase, sim.color, sim.motif, quality]);
 
   // Ukuran & posisi jendela
   const winW = THREE.MathUtils.clamp(sim.lebar / 100, 0.8, 4.2);
