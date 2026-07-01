@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description"
+        content="Aplikasi presensi pegawai: login (NIP/NRP/NIK/No. HP) dan absen masuk/pulang.">
+  <meta name="theme-color" content="#00695C">
+
+  <!-- iOS / PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Presensi">
+  <link rel="apple-touch-icon" href="icons/Icon-apple-180.png">
+
+  <link rel="icon" type="image/png" href="favicon.png"/>
+  <link rel="manifest" href="manifest.json">
+
+  <title>Presensi Pegawai</title>
+
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; background: #00695C; }
+    #loading {
+      position: fixed; inset: 0; z-index: 9999;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      background: #00695C; color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      transition: opacity .35s ease; opacity: 1;
+    }
+    #loading.hide { opacity: 0; pointer-events: none; }
+    #loading .badge {
+      width: 84px; height: 84px; border-radius: 22px;
+      background: rgba(255,255,255,.14);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 18px;
+    }
+    #loading .badge svg { width: 46px; height: 46px; }
+    #loading .title { font-size: 18px; font-weight: 700; letter-spacing: .2px; }
+    #loading .sub { margin-top: 6px; font-size: 13px; opacity: .8; }
+    #loading .spinner {
+      margin-top: 22px; width: 26px; height: 26px;
+      border: 2.6px solid rgba(255,255,255,.35);
+      border-top-color: #fff; border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div id="loading">
+    <div class="badge">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 6L9 17l-5-5" stroke="#fff" stroke-width="2.6"
+              stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="title">Presensi Pegawai</div>
+    <div class="sub">Memuat…</div>
+    <div class="spinner"></div>
+  </div>
+
+  <script>
+    // Sembunyikan splash saat Flutter selesai menggambar frame pertama.
+    window.addEventListener('flutter-first-frame', function () {
+      var el = document.getElementById('loading');
+      if (!el) return;
+      el.classList.add('hide');
+      setTimeout(function () { el.remove(); }, 400);
+    });
+  </script>
+
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

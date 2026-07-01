@@ -41,14 +41,18 @@ Butuh **Flutter SDK** (lihat https://docs.flutter.dev/get-started/install).
 ```bash
 cd presensi_app
 
-# 1) Buat scaffolding platform (android/ios/web/dll) — hanya sekali.
-#    Aman: tidak menimpa lib/ dan pubspec.yaml yang sudah ada.
-flutter create .
+# 1) Buat scaffolding platform mobile (android/ios) — hanya sekali.
+#    Folder web/ SUDAH disertakan (judul, ikon, manifest PWA), jadi tidak
+#    perlu dibuat ulang. flutter create tidak menimpa lib/ & web/ yang ada.
+flutter create . --platforms=android,ios
 
 # 2) Ambil dependency
 flutter pub get
 
-# 3) Jalankan (pilih perangkat/emulator yang aktif)
+# 3a) Jalankan di web (Chrome)
+flutter run -d chrome
+
+# 3b) atau di perangkat/emulator mobile
 flutter run
 ```
 
@@ -88,6 +92,10 @@ lib/
   widgets/
     section_card.dart           Kartu putih reusable
     status_badge.dart           Lencana status
+web/                            Konfigurasi web (siap PWA)
+  index.html                    Judul, theme-color, splash loading
+  manifest.json                 Nama app, warna, ikon PWA
+  favicon.png, icons/           Ikon (192/512 + maskable + apple-touch)
 test/
   auth_service_test.dart        Unit test autentikasi
   login_screen_test.dart        Widget test layar login
