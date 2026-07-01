@@ -3,9 +3,10 @@
  * ukuran, buka/tutup, vitrase) + estimasi harga & tambah ke keranjang.
  * ========================================================================= */
 import { useStore, activeProduct } from "../store.js";
-import { ROOMS, STYLES, MOTIFS, SIZES, TIMES, RUPIAH } from "../data.js";
+import { TOKO, ROOMS, STYLES, MOTIFS, SIZES, TIMES, RUPIAH } from "../data.js";
 import { estimatePrice } from "../lib/price.js";
-import { fabricCss, shade } from "../lib/fabric.js";
+import { shade } from "../lib/fabric.js";
+import { shareUrl } from "../lib/share.js";
 
 export default function Controls() {
   const sim = useStore((s) => s.sim);
@@ -32,6 +33,32 @@ export default function Controls() {
     });
     showToast(`${product.nama} ditambahkan ke keranjang`);
     openCart();
+  };
+
+  const motifName = (id) => (MOTIFS.find((x) => x.id === id) || {}).nama || id;
+
+  const salinLink = async () => {
+    const url = shareUrl(sim);
+    try {
+      await navigator.clipboard.writeText(url);
+      showToast("Link desain disalin! 🔗");
+    } catch {
+      window.prompt("Salin link desain ini:", url);
+    }
+  };
+
+  const kirimDesain = () => {
+    const link = shareUrl(sim);
+    const text =
+      `Halo ${TOKO.nama}, saya tertarik dengan desain gorden ini:\n` +
+      `• Produk: ${product.nama}\n` +
+      `• Model: ${styleName(sim.style)}\n` +
+      `• Motif: ${motifName(sim.motif)}\n` +
+      `• Warna: ${sim.color}\n` +
+      `• Ukuran: ${sim.lebar}x${sim.tinggi} cm\n` +
+      `• Estimasi: ${RUPIAH.format(price)}\n\n` +
+      `Lihat desain 3D saya: ${link}`;
+    window.open(`https://wa.me/${TOKO.whatsapp}?text=${encodeURIComponent(text)}`, "_blank");
   };
 
   return (
@@ -200,6 +227,12 @@ export default function Controls() {
           <strong>{RUPIAH.format(price)}</strong>
         </div>
         <button className="btn btn-primary" onClick={onAdd}>+ Keranjang</button>
+      </div>
+
+      {/* Bagikan desain */}
+      <div className="share-row">
+        <button className="btn btn-ghost" onClick={salinLink}>🔗 Salin Link</button>
+        <button className="btn btn-primary" onClick={kirimDesain}>💬 Kirim Desain ke Toko</button>
       </div>
     </div>
   );

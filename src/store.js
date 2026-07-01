@@ -3,6 +3,7 @@
  * ========================================================================= */
 import { create } from "zustand";
 import { PRODUCTS } from "./data.js";
+import { decodeConfig } from "./lib/share.js";
 
 const CART_KEY = "gorden_cart_v2";
 
@@ -22,23 +23,35 @@ function saveCart(cart) {
 
 const first = PRODUCTS[0];
 
+const DEFAULT_SIM = {
+  productId: first.id,
+  room: "ruang-tamu",
+  style: first.style,
+  color: first.colors[0],
+  motif: first.motif || "polos",
+  opacity: first.opacity,
+  sheer: first.sheer,
+  openness: 0.3, // 0 = tertutup, 1 = terbuka penuh
+  vitrase: true,
+  lebar: 150,
+  tinggi: 200,
+  mode: "orbit", // kamera: 'orbit' (putar) | 'tour' (keliling otomatis) | 'walk' (jelajah)
+  waktu: "siang", // suasana pencahayaan: 'siang' | 'sore' | 'malam'
+};
+
+// Hidrasi dari URL (#...) bila ada link desain yang dibagikan
+let urlSim = null;
+try {
+  if (typeof location !== "undefined") {
+    urlSim = decodeConfig(location.hash.replace(/^#/, ""));
+  }
+} catch {
+  urlSim = null;
+}
+
 export const useStore = create((set, get) => ({
   // ----- Konfigurasi simulator -----
-  sim: {
-    productId: first.id,
-    room: "ruang-tamu",
-    style: first.style,
-    color: first.colors[0],
-    motif: first.motif || "polos",
-    opacity: first.opacity,
-    sheer: first.sheer,
-    openness: 0.3, // 0 = tertutup, 1 = terbuka penuh
-    vitrase: true,
-    lebar: 150,
-    tinggi: 200,
-    mode: "orbit", // kamera: 'orbit' (putar) | 'tour' (keliling otomatis) | 'walk' (jelajah)
-    waktu: "siang", // suasana pencahayaan: 'siang' | 'sore' | 'malam'
-  },
+  sim: { ...DEFAULT_SIM, ...(urlSim || {}) },
   setSim: (partial) => set((s) => ({ sim: { ...s.sim, ...partial } })),
 
   // Tombol arah navigasi mode "Jelajah" (dibaca per-frame, tidak memicu re-render)

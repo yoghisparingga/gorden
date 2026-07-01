@@ -188,6 +188,8 @@ h1, h2, h3, h4 { font-family: "Playfair Display", Georgia, serif; line-height: 1
 .sim-est { display: flex; flex-direction: column; }
 .sim-est small { font-size: 0.74rem; color: var(--ink-soft); }
 .sim-est strong { font-size: 1.3rem; color: var(--brand-dark); font-family: "Playfair Display", serif; }
+.share-row { display: flex; gap: 0.5rem; }
+.share-row .btn { flex: 1; padding: 0.6rem 0.5rem; font-size: 0.84rem; }
 
 /* Katalog */
 .filters { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; margin-bottom: 2rem; }

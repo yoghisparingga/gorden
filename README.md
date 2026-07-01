@@ -29,6 +29,8 @@ Dibangun dengan **React + Vite + Three.js** (`@react-three/fiber`).
   - Gorden **bergerak tertiup angin** + pencahayaan & bayangan realistis
   - **Ukuran jendela** (preset + custom) mengubah bentuk jendela 3D → **estimasi harga**
   - **Unduh gambar** hasil simulasi (PNG)
+  - **Bagikan desain**: salin link atau kirim ke toko via WhatsApp — link
+    membuka ulang tampilan 3D yang sama persis (konfigurasi tersimpan di URL)
 - **Katalog produk** dengan filter, rating, dan thumbnail motif
 - **Keranjang belanja** (tersimpan via `localStorage`)
 - **Checkout via WhatsApp** — pesanan otomatis terformat rapi
