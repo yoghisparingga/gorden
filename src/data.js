@@ -140,6 +140,13 @@ export const MOTIFS = [
   { id: "damask", nama: "Damask" },
 ];
 
+/* Preset waktu/suasana pencahayaan simulator 3D */
+export const TIMES = [
+  { id: "siang", nama: "Siang", emoji: "☀️" },
+  { id: "sore", nama: "Sore", emoji: "🌇" },
+  { id: "malam", nama: "Malam", emoji: "🌙" },
+];
+
 export const SIZES = [
   { id: "kecil", nama: "Kecil", lebar: 100, tinggi: 150, desc: "100 × 150" },
   { id: "sedang", nama: "Sedang", lebar: 150, tinggi: 200, desc: "150 × 200" },

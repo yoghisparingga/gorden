@@ -33,21 +33,68 @@ function Env() {
 
 const ROOM = { W: 6, H: 3.2, D: 6 };
 
-function makeSky() {
+function makeSky(time = "siang") {
   const cv = document.createElement("canvas");
   cv.width = cv.height = 256;
   const c = cv.getContext("2d");
   const g = c.createLinearGradient(0, 0, 0, 256);
-  g.addColorStop(0, "#aedcf2");
-  g.addColorStop(0.55, "#dceef6");
-  g.addColorStop(1, "#eef7e6");
-  c.fillStyle = g;
-  c.fillRect(0, 0, 256, 256);
-  c.fillStyle = "rgba(255,243,200,0.95)";
-  c.beginPath();
-  c.arc(185, 64, 26, 0, Math.PI * 2);
-  c.fill();
-  c.fillStyle = "rgba(120,165,120,0.5)";
+
+  if (time === "sore") {
+    g.addColorStop(0, "#f7a65a");
+    g.addColorStop(0.5, "#f9cf8f");
+    g.addColorStop(1, "#f2d3a0");
+    c.fillStyle = g;
+    c.fillRect(0, 0, 256, 256);
+    // Matahari besar rendah
+    c.fillStyle = "rgba(255,236,180,0.98)";
+    c.beginPath();
+    c.arc(128, 150, 40, 0, Math.PI * 2);
+    c.fill();
+    c.fillStyle = "rgba(150,110,90,0.55)";
+    hills(c);
+  } else if (time === "malam") {
+    g.addColorStop(0, "#0e1220");
+    g.addColorStop(0.6, "#1b2440");
+    g.addColorStop(1, "#2a3556");
+    c.fillStyle = g;
+    c.fillRect(0, 0, 256, 256);
+    // Bulan
+    c.fillStyle = "rgba(236,238,245,0.95)";
+    c.beginPath();
+    c.arc(190, 58, 22, 0, Math.PI * 2);
+    c.fill();
+    // Bintang
+    c.fillStyle = "rgba(255,255,255,0.85)";
+    for (let i = 0; i < 40; i++) {
+      const x = (i * 61) % 256;
+      const y = (i * 37) % 150;
+      c.fillRect(x, y, i % 4 === 0 ? 2 : 1, i % 4 === 0 ? 2 : 1);
+    }
+    c.fillStyle = "rgba(10,14,24,0.9)";
+    hills(c);
+    // Lampu kota
+    c.fillStyle = "rgba(255,210,120,0.8)";
+    for (let i = 0; i < 18; i++) c.fillRect((i * 29 + 8) % 256, 196 + (i % 3) * 4, 2, 2);
+  } else {
+    g.addColorStop(0, "#aedcf2");
+    g.addColorStop(0.55, "#dceef6");
+    g.addColorStop(1, "#eef7e6");
+    c.fillStyle = g;
+    c.fillRect(0, 0, 256, 256);
+    c.fillStyle = "rgba(255,243,200,0.95)";
+    c.beginPath();
+    c.arc(185, 64, 26, 0, Math.PI * 2);
+    c.fill();
+    c.fillStyle = "rgba(120,165,120,0.5)";
+    hills(c);
+  }
+
+  const t = new THREE.CanvasTexture(cv);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+function hills(c) {
   c.beginPath();
   c.moveTo(0, 205);
   c.lineTo(70, 150);
@@ -58,10 +105,14 @@ function makeSky() {
   c.lineTo(0, 256);
   c.closePath();
   c.fill();
-  const t = new THREE.CanvasTexture(cv);
-  t.colorSpace = THREE.SRGBColorSpace;
-  return t;
 }
+
+/* Konfigurasi pencahayaan per waktu */
+const LIGHTING = {
+  siang: { sun: "#fff1c9", sunI: 2.4, amb: 0.18, hemi: 0.35, exposure: 1.15, interior: 0.0, bg: "#e7e0d5", pos: [0.6, 1.4, -2.2] },
+  sore: { sun: "#ff9a4d", sunI: 2.3, amb: 0.14, hemi: 0.26, exposure: 1.12, interior: 0.25, bg: "#ecd4b8", pos: [2.6, 0.5, -2.0] },
+  malam: { sun: "#5f7fb0", sunI: 0.45, amb: 0.05, hemi: 0.1, exposure: 1.3, interior: 1.0, bg: "#181a22", pos: [-1.6, 1.6, -2.2] },
+};
 
 function lighten(hex, amt) {
   const h = hex.replace("#", "");
@@ -214,7 +265,12 @@ function WallArt({ position, color, rotation = [0, 0, 0] }) {
 }
 
 export default function Scene({ sim, room }) {
-  const sky = useMemo(() => makeSky(), []);
+  const sky = useMemo(() => makeSky(sim.waktu), [sim.waktu]);
+  const L = LIGHTING[sim.waktu] || LIGHTING.siang;
+  const { gl } = useThree();
+  useEffect(() => {
+    gl.toneMappingExposure = L.exposure;
+  }, [gl, L]);
 
   // Ukuran & posisi jendela
   const winW = THREE.MathUtils.clamp(sim.lebar / 100, 0.8, 4.2);
@@ -245,18 +301,21 @@ export default function Scene({ sim, room }) {
 
   return (
     <>
-      <color attach="background" args={["#e7e0d5"]} />
-      <fog attach="fog" args={["#e7e0d5", 10, 18]} />
+      <color attach="background" args={[L.bg]} />
+      <fog attach="fog" args={[L.bg, 10, 18]} />
       <Env />
 
-      {/* Pencahayaan */}
-      <ambientLight intensity={0.18} />
-      <hemisphereLight args={["#ffffff", room.floor, 0.35]} />
-      <directionalLight position={[3, 3, 2.5]} intensity={0.35} />
+      {/* Pencahayaan (menyesuaikan waktu) */}
+      <ambientLight intensity={L.amb} />
+      <hemisphereLight args={["#ffffff", room.floor, L.hemi]} />
+      <directionalLight position={[3, 3, 2.5]} intensity={0.3 * L.sunI / 2.4} />
+      {/* Lampu interior (menyala saat sore/malam) */}
+      <pointLight position={[0, ROOM.H - 0.35, 0.6]} intensity={0.25 + L.interior * 3.2} color="#ffd7a0" distance={12} decay={2} />
+      <pointLight position={[0, 1.4, 1.8]} intensity={L.interior * 1.2} color="#ffdca8" distance={8} decay={2} />
       <directionalLight
-        position={[0.6, winCY + 1.4, wallZ - 2.2]}
-        intensity={2.4}
-        color="#fff1c9"
+        position={[L.pos[0], winCY + L.pos[1], wallZ + L.pos[2]]}
+        intensity={L.sunI}
+        color={L.sun}
         castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}

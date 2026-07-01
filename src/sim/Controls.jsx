@@ -3,7 +3,7 @@
  * ukuran, buka/tutup, vitrase) + estimasi harga & tambah ke keranjang.
  * ========================================================================= */
 import { useStore, activeProduct } from "../store.js";
-import { ROOMS, STYLES, MOTIFS, SIZES, RUPIAH } from "../data.js";
+import { ROOMS, STYLES, MOTIFS, SIZES, TIMES, RUPIAH } from "../data.js";
 import { estimatePrice } from "../lib/price.js";
 import { fabricCss, shade } from "../lib/fabric.js";
 
@@ -52,6 +52,25 @@ export default function Controls() {
           ))}
         </div>
       </div>
+
+      {/* Waktu / suasana (khusus mode 3D) */}
+      {sim.room !== "upload" && (
+        <div className="ctrl">
+          <label className="ctrl-label">Suasana / Waktu</label>
+          <div className="room-grid">
+            {TIMES.map((t) => (
+              <button
+                key={t.id}
+                className={"room-btn" + (sim.waktu === t.id ? " active" : "")}
+                onClick={() => setSim({ waktu: t.id })}
+              >
+                <span>{t.emoji}</span>
+                {t.nama}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Model */}
       <div className="ctrl">

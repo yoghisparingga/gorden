@@ -37,6 +37,7 @@ export const useStore = create((set, get) => ({
     lebar: 150,
     tinggi: 200,
     mode: "orbit", // kamera: 'orbit' (putar) | 'tour' (keliling otomatis) | 'walk' (jelajah)
+    waktu: "siang", // suasana pencahayaan: 'siang' | 'sore' | 'malam'
   },
   setSim: (partial) => set((s) => ({ sim: { ...s.sim, ...partial } })),
 
