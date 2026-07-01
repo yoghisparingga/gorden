@@ -19,6 +19,10 @@ migrate_working_dir/
 # Visual Studio Code
 .vscode/
 
+# SDK Flutter yang diunduh saat build di Vercel
+/_flutter/
+.vercel/
+
 # Flutter/Dart/Pub related
 **/doc/api/
 **/ios/Flutter/.last_build_id

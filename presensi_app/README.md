@@ -100,6 +100,41 @@ test/
 2. Ganti pembuatan `AuthService(sampleEmployees)` di `main.dart`.
 3. UI, provider, dan alur presensi tidak perlu diubah.
 
+## ☁️ Deploy ke Vercel (Flutter Web)
+
+Bisa. Flutter Web menghasilkan situs statis yang cocok untuk Vercel. Karena
+Vercel tidak menyertakan Flutter SDK, file `vercel.json` di folder ini sudah
+mengatur agar Flutter diunduh & di-build otomatis.
+
+**Langkah (dashboard Vercel):**
+
+1. Buka https://vercel.com → **Add New… → Project** → import repo
+   `yoghisparingga/gorden`.
+2. Di setelan project, set **Root Directory = `presensi_app`**
+   (penting — agar Vercel memakai `presensi_app/vercel.json`, bukan web React
+   di root repo).
+3. Biarkan Build/Output default (sudah diatur lewat `vercel.json`), klik
+   **Deploy**. Build pertama beberapa menit karena mengunduh Flutter.
+
+> Web React (toko gorden) dan app Flutter ini bisa jadi **dua project Vercel
+> terpisah** dari repo yang sama, dibedakan lewat Root Directory.
+
+**Alternatif (build lokal, lebih cepat):**
+
+```bash
+cd presensi_app
+flutter build web --release
+npx vercel deploy --prebuilt build/web   # atau hubungkan folder build/web
+```
+
+**Catatan penting untuk versi web:**
+
+- `shared_preferences` di web memakai **localStorage browser**, jadi sesi login
+  & data presensi tersimpan **per-browser/perangkat** (sesuai desain data lokal
+  saat ini). Saat pindah ke API, data akan terpusat di server.
+- Ini aplikasi statis sisi-klien (tanpa server). Saat memakai API nanti,
+  perhatikan **CORS** di sisi backend.
+
 ## 🔒 Catatan keamanan
 
 - Data contoh menyimpan kata sandi sebagai teks biasa **hanya untuk demo**.
