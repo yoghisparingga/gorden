@@ -32,7 +32,7 @@ export default function UploadMode() {
     if (!cv) return;
     const dpr = window.devicePixelRatio || 1;
     const W = cv.clientWidth;
-    const H = (W * 3) / 4;
+    const H = (W * 10) / 16;
     cv.width = W * dpr;
     cv.height = H * dpr;
     const ctx = cv.getContext("2d");

@@ -203,6 +203,86 @@ function ToyBox({ position, accent }) {
   );
 }
 
+function TVConsole({ position, rotation }) {
+  return (
+    <group position={position} rotation={rotation}>
+      <Box args={[1.6, 0.4, 0.4]} position={[0, 0.2, 0]} color={WOOD_D} rough={0.5} />
+      <Box args={[1.5, 0.85, 0.05]} position={[0, 0.95, -0.05]} color="#1a1d22" rough={0.25} />
+      <Box args={[1.35, 0.7, 0.02]} position={[0, 0.95, -0.02]} color="#2b3a4a" rough={0.2} />
+    </group>
+  );
+}
+
+function Wardrobe({ position, rotation }) {
+  return (
+    <group position={position} rotation={rotation}>
+      <Box args={[1.4, 2.2, 0.6]} position={[0, 1.1, 0]} color={WOOD} rough={0.6} />
+      <Box args={[0.02, 2.0, 0.62]} position={[0, 1.1, 0]} color={WOOD_D} />
+      {[-0.35, 0.35].map((x) => (
+        <mesh key={x} position={[x, 1.1, 0.31]}>
+          <boxGeometry args={[0.04, 0.2, 0.04]} />
+          <meshStandardMaterial color={METAL} metalness={0.5} roughness={0.3} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+function Bench({ position }) {
+  return (
+    <group position={position}>
+      <Box args={[1.5, 0.16, 0.45]} position={[0, 0.42, 0]} color="#c9b8a3" rough={0.9} />
+      {[[-0.65, 0.17], [0.65, 0.17], [-0.65, -0.17], [0.65, -0.17]].map(([x, z], i) => (
+        <Leg key={i} x={x} z={z} h={0.42} />
+      ))}
+    </group>
+  );
+}
+
+function Armchair({ position, rotation, color = "#9a6b5a" }) {
+  return (
+    <group position={position} rotation={rotation}>
+      <Box args={[0.85, 0.22, 0.8]} position={[0, 0.34, 0]} color={color} rough={0.95} />
+      <Box args={[0.85, 0.5, 0.2]} position={[0, 0.6, -0.3]} color={color} rough={0.95} />
+      <Box args={[0.18, 0.4, 0.8]} position={[-0.42, 0.5, 0]} color={color} rough={0.95} />
+      <Box args={[0.18, 0.4, 0.8]} position={[0.42, 0.5, 0]} color={color} rough={0.95} />
+      <Box args={[0.6, 0.16, 0.7]} position={[0, 0.46, 0.02]} color={color} rough={1} />
+      {[[-0.36, 0.34], [0.36, 0.34], [-0.36, -0.34], [0.36, -0.34]].map(([x, z], i) => (
+        <Leg key={i} x={x} z={z} h={0.22} r={0.04} />
+      ))}
+    </group>
+  );
+}
+
+function RoundTable({ position, r = 0.4, h = 0.74, color = WOOD }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, h, 0]} castShadow>
+        <cylinderGeometry args={[r, r, 0.06, 24]} />
+        <meshStandardMaterial color={color} roughness={0.4} />
+      </mesh>
+      <mesh position={[0, h / 2, 0]} castShadow>
+        <cylinderGeometry args={[0.05, 0.05, h, 12]} />
+        <meshStandardMaterial color={WOOD_D} roughness={0.5} />
+      </mesh>
+      <mesh position={[0, 0.02, 0]}>
+        <cylinderGeometry args={[0.25, 0.25, 0.04, 20]} />
+        <meshStandardMaterial color={WOOD_D} roughness={0.5} />
+      </mesh>
+    </group>
+  );
+}
+
+function BistroSet({ position, accent }) {
+  return (
+    <group position={position}>
+      <RoundTable position={[0, 0, 0]} r={0.34} />
+      <Chair position={[0, 0, 0.6]} rotation={[0, Math.PI, 0]} color={accent} />
+      <Chair position={[0, 0, -0.6]} color={accent} />
+    </group>
+  );
+}
+
 export default function Furniture({ room, accent }) {
   switch (room) {
     case "ruang-tamu":
@@ -251,6 +331,40 @@ export default function Furniture({ room, accent }) {
           <Desk position={[0, 0, 1.0]} />
           <OfficeChair position={[0, 0, 1.9]} accent={accent} />
           <Shelf position={[2.5, 0, -0.5]} rotation={[0, -Math.PI / 2, 0]} accent={accent} />
+        </group>
+      );
+    case "ruang-keluarga":
+      return (
+        <group>
+          <Sofa position={[0, 0, 1.6]} color="#6f7c74" />
+          <Armchair position={[-1.9, 0, 0.6]} rotation={[0, 0.5, 0]} color="#6f7c74" />
+          <CoffeeTable position={[0, 0, 0.5]} />
+          <TVConsole position={[2.7, 0, -0.3]} rotation={[0, -Math.PI / 2, 0]} />
+        </group>
+      );
+    case "kamar-utama":
+      return (
+        <group>
+          <Bed position={[-1.2, 0, -0.4]} rotation={[0, Math.PI / 2, 0]} color="#d3c6d6" />
+          <Bench position={[-1.2, 0, 1.0]} />
+          <Wardrobe position={[2.6, 0, -0.6]} rotation={[0, -Math.PI / 2, 0]} />
+          <Nightstand position={[-2.7, 0, -1.1]} accent={accent} />
+        </group>
+      );
+    case "ruang-baca":
+      return (
+        <group>
+          <Armchair position={[-1.1, 0, 1.1]} rotation={[0, 0.35, 0]} color="#a15b43" />
+          <RoundTable position={[-0.1, 0, 1.2]} r={0.3} h={0.5} />
+          <Lamp position={[-2, 0, 0.6]} accent="#ffe9b0" />
+          <Shelf position={[2.5, 0, -0.3]} rotation={[0, -Math.PI / 2, 0]} accent={accent} />
+        </group>
+      );
+    case "kafe":
+      return (
+        <group>
+          <BistroSet position={[-1.2, 0, 0.9]} accent="#5a4636" />
+          <BistroSet position={[1.4, 0, 1.4]} accent="#5a4636" />
         </group>
       );
     default:

@@ -155,6 +155,10 @@ export const ROOMS = [
   { id: "ruang-makan", nama: "Ruang Makan", emoji: "🍽️", wall: "#f3e7d6", floor: "#a9794f", accent: "#c98b3a" },
   { id: "dapur", nama: "Dapur", emoji: "🍳", wall: "#eef1ec", floor: "#b9b1a4", accent: "#8fae9b" },
   { id: "kantor", nama: "Kantor", emoji: "💼", wall: "#e9edf1", floor: "#9aa3ab", accent: "#5b7d9a" },
+  { id: "ruang-keluarga", nama: "Ruang Keluarga", emoji: "📺", wall: "#ece2d4", floor: "#b98c5f", accent: "#4f8a86" },
+  { id: "kamar-utama", nama: "Kamar Utama", emoji: "🛌", wall: "#e6e0e6", floor: "#a98a6a", accent: "#8a6d9c" },
+  { id: "ruang-baca", nama: "Ruang Baca", emoji: "📚", wall: "#e8e1d2", floor: "#9c7550", accent: "#a15b43" },
+  { id: "kafe", nama: "Kafe / Resto", emoji: "☕", wall: "#e7dccb", floor: "#7a5a44", accent: "#c07f3a" },
   { id: "upload", nama: "Foto Saya", emoji: "📷", wall: "#e9e9e9", floor: "#cccccc", accent: "#b07a4f" },
 ];
 

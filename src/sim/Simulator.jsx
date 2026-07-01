@@ -46,7 +46,7 @@ export default function Simulator() {
 
   return (
     <section id="simulator" className="section sim-section">
-      <div className="container">
+      <div className="container sim-container">
         <div className="section-head">
           <h2>🪟 Simulasi Gorden 3D</h2>
           <p>
