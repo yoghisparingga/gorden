@@ -4,12 +4,12 @@
  * ========================================================================= */
 
 export const TOKO = {
-  nama: "Gorden Asri",
-  tagline: "Gorden & Vitrase Premium untuk Rumah Impian Anda",
-  // Ganti dengan nomor WhatsApp toko Anda (format internasional, mis. 6281234567890)
-  whatsapp: "6281234567890",
-  email: "halo@gordenasri.id",
-  alamat: "Jl. Mawar No. 12, Jakarta",
+  nama: "I'AM GORDEN LUBUK LINGGAU",
+  tagline: "Gorden Terbaik Di Lubuk Linggau",
+  // Nomor WhatsApp toko (format internasional)
+  whatsapp: "6282281108889",
+  email: "halo@iamgorden.id",
+  alamat: "Jl. Yos Sudarso, Kel. Taba Koji, Kecamatan Lubuk Linggau Timur I",
 };
 
 export const PRODUCTS = [
