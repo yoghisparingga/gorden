@@ -39,6 +39,15 @@ const DEFAULT_SIM = {
   waktu: "siang", // suasana pencahayaan: 'siang' | 'sore' | 'malam'
 };
 
+// Deteksi perangkat untuk kualitas render default (HP/low-end → hemat)
+function detectQuality() {
+  if (typeof navigator === "undefined") return "tinggi";
+  const cores = navigator.hardwareConcurrency || 8;
+  const mobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "");
+  const small = typeof matchMedia !== "undefined" && matchMedia("(max-width: 820px)").matches;
+  return mobile || small || cores <= 4 ? "hemat" : "tinggi";
+}
+
 // Hidrasi dari URL (#...) bila ada link desain yang dibagikan
 let urlSim = null;
 try {
@@ -52,6 +61,10 @@ try {
 export const useStore = create((set, get) => ({
   // ----- Konfigurasi simulator -----
   sim: { ...DEFAULT_SIM, ...(urlSim || {}) },
+
+  // Kualitas render: 'tinggi' (efek penuh) | 'hemat' (ringan untuk HP)
+  quality: detectQuality(),
+  setQuality: (q) => set({ quality: q }),
   setSim: (partial) => set((s) => ({ sim: { ...s.sim, ...partial } })),
 
   // Tombol arah navigasi mode "Jelajah" (dibaca per-frame, tidak memicu re-render)

@@ -264,13 +264,23 @@ function WallArt({ position, color, rotation = [0, 0, 0] }) {
   );
 }
 
-export default function Scene({ sim, room }) {
+export default function Scene({ sim, room, quality = "tinggi" }) {
+  const hi = quality === "tinggi";
   const sky = useMemo(() => makeSky(sim.waktu), [sim.waktu]);
   const L = LIGHTING[sim.waktu] || LIGHTING.siang;
   const { gl } = useThree();
   useEffect(() => {
     gl.toneMappingExposure = L.exposure;
   }, [gl, L]);
+
+  // Bekukan shadow map: hanya render ulang saat konfigurasi berubah, bukan tiap frame
+  useEffect(() => {
+    gl.shadowMap.autoUpdate = false;
+    return () => { gl.shadowMap.autoUpdate = true; };
+  }, [gl]);
+  useEffect(() => {
+    gl.shadowMap.needsUpdate = true;
+  }, [gl, sim.room, sim.lebar, sim.tinggi, sim.openness, sim.style, sim.waktu, sim.vitrase, sim.color, sim.motif, quality]);
 
   // Ukuran & posisi jendela
   const winW = THREE.MathUtils.clamp(sim.lebar / 100, 0.8, 4.2);
@@ -317,11 +327,11 @@ export default function Scene({ sim, room }) {
         intensity={L.sunI}
         color={L.sun}
         castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
+        shadow-mapSize-width={hi ? 2048 : 1024}
+        shadow-mapSize-height={hi ? 2048 : 1024}
         shadow-bias={-0.0002}
         shadow-normalBias={0.02}
-        shadow-radius={7}
+        shadow-radius={hi ? 7 : 3}
         shadow-camera-near={0.5}
         shadow-camera-far={14}
         shadow-camera-left={-4.5}
@@ -405,17 +415,17 @@ export default function Scene({ sim, room }) {
         </mesh>
       ))}
 
-      {/* Vitrase (di belakang) */}
+      {/* Vitrase (di belakang) — selalu statis */}
       {showSheer && (
         <>
-          <Curtain side="left" winW={winW} winH={winH} sill={sill} openness={0.05} texture={sheerTex} opacity={0.4} z={wallZ + 0.18} />
-          <Curtain side="right" winW={winW} winH={winH} sill={sill} openness={0.05} texture={sheerTex} opacity={0.4} z={wallZ + 0.18} />
+          <Curtain side="left" winW={winW} winH={winH} sill={sill} openness={0.05} texture={sheerTex} opacity={0.4} z={wallZ + 0.18} hi={hi} breeze={false} />
+          <Curtain side="right" winW={winW} winH={winH} sill={sill} openness={0.05} texture={sheerTex} opacity={0.4} z={wallZ + 0.18} hi={hi} breeze={false} />
         </>
       )}
 
-      {/* Gorden utama */}
-      <Curtain side="left" winW={winW} winH={winH} sill={sill} openness={sim.openness} texture={fabricTex} opacity={mainOpacity} z={wallZ + 0.32} />
-      <Curtain side="right" winW={winW} winH={winH} sill={sill} openness={sim.openness} texture={fabricTex} opacity={mainOpacity} z={wallZ + 0.32} />
+      {/* Gorden utama — beranimasi angin hanya di mode kualitas tinggi */}
+      <Curtain side="left" winW={winW} winH={winH} sill={sill} openness={sim.openness} texture={fabricTex} opacity={mainOpacity} z={wallZ + 0.32} hi={hi} breeze={hi} />
+      <Curtain side="right" winW={winW} winH={winH} sill={sill} openness={sim.openness} texture={fabricTex} opacity={mainOpacity} z={wallZ + 0.32} hi={hi} breeze={hi} />
 
       {/* Furnitur & dekorasi ruangan */}
       <Furniture room={sim.room} accent={room.accent} />

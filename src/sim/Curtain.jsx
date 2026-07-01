@@ -15,8 +15,10 @@ export default function Curtain({
   opacity = 1,
   z = 0,
   breeze = true,
+  hi = true,
 }) {
   const meshRef = useRef();
+  const frameCount = useRef(0);
 
   // Dimensi panel berdasarkan buka/tutup
   const dims = useMemo(() => {
@@ -34,8 +36,8 @@ export default function Curtain({
   // Geometri dengan lipatan (displacement z)
   const geometry = useMemo(() => {
     const { panelW, height, foldCount, foldAmp } = dims;
-    const segX = THREE.MathUtils.clamp(Math.round(panelW * 24), 10, 64);
-    const segY = 18;
+    const segX = THREE.MathUtils.clamp(Math.round(panelW * (hi ? 20 : 12)), 8, hi ? 48 : 26);
+    const segY = hi ? 16 : 10;
     const geo = new THREE.PlaneGeometry(panelW, height, segX, segY);
     const pos = geo.attributes.position;
     const n = pos.count;
@@ -58,7 +60,7 @@ export default function Curtain({
     geo.userData = { baseZ, uArr, vw, foldCount };
     geo.computeVertexNormals();
     return geo;
-  }, [dims]);
+  }, [dims, hi]);
 
   // Repeat tekstur sesuai ukuran panel
   const tex = useMemo(() => {
@@ -71,37 +73,52 @@ export default function Curtain({
     return texture;
   }, [texture, dims]);
 
-  // Animasi angin
+  // Animasi angin (hanya mode kualitas tinggi; normal dihitung ulang berkala)
   useFrame(({ clock }) => {
     if (!breeze || !meshRef.current) return;
     const geo = meshRef.current.geometry;
     const { baseZ, uArr, vw, foldCount } = geo.userData;
     const pos = geo.attributes.position;
     const t = clock.getElapsedTime();
-    const amp = 0.035 + openness * 0.03;
+    const amp = 0.03 + openness * 0.025;
     for (let i = 0; i < pos.count; i++) {
-      const sway = Math.sin(uArr[i] * foldCount * 1.3 + t * 1.6) * amp * vw[i];
+      const sway = Math.sin(uArr[i] * foldCount * 1.3 + t * 1.5) * amp * vw[i];
       pos.setZ(i, baseZ[i] + sway);
     }
     pos.needsUpdate = true;
-    geo.computeVertexNormals();
+    // Hitung ulang normal tiap 3 frame agar hemat CPU
+    frameCount.current = (frameCount.current + 1) % 3;
+    if (frameCount.current === 0) geo.computeVertexNormals();
   });
 
   return (
     <mesh ref={meshRef} geometry={geometry} position={[dims.centerX, dims.centerY, z]} castShadow>
-      <meshPhysicalMaterial
-        map={tex}
-        color="#ffffff"
-        roughness={0.85}
-        metalness={0}
-        sheen={0.6}
-        sheenRoughness={0.75}
-        sheenColor="#ffffff"
-        envMapIntensity={0.28}
-        side={THREE.DoubleSide}
-        transparent={opacity < 1}
-        opacity={opacity}
-      />
+      {hi ? (
+        <meshPhysicalMaterial
+          map={tex}
+          color="#ffffff"
+          roughness={0.85}
+          metalness={0}
+          sheen={0.6}
+          sheenRoughness={0.75}
+          sheenColor="#ffffff"
+          envMapIntensity={0.28}
+          side={THREE.DoubleSide}
+          transparent={opacity < 1}
+          opacity={opacity}
+        />
+      ) : (
+        <meshStandardMaterial
+          map={tex}
+          color="#ffffff"
+          roughness={0.9}
+          metalness={0}
+          envMapIntensity={0.2}
+          side={THREE.DoubleSide}
+          transparent={opacity < 1}
+          opacity={opacity}
+        />
+      )}
     </mesh>
   );
 }

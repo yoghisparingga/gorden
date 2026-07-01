@@ -11,8 +11,16 @@ import UploadMode from "./UploadMode.jsx";
 import { useStore, activeProduct } from "../store.js";
 import { ROOMS } from "../data.js";
 
-/* Efek pasca-proses untuk tampilan interior modern */
-function PostFX() {
+/* Efek pasca-proses — penuh di mode tinggi, ringan di mode hemat */
+function PostFX({ quality }) {
+  if (quality !== "tinggi") {
+    return (
+      <EffectComposer disableNormalPass multisampling={0}>
+        <SMAA />
+        <Vignette offset={0.3} darkness={0.42} eskil={false} />
+      </EffectComposer>
+    );
+  }
   return (
     <EffectComposer disableNormalPass multisampling={0}>
       <N8AO aoRadius={0.7} intensity={2.4} distanceFalloff={1} halfRes />
@@ -33,6 +41,8 @@ export default function Simulator() {
   const sim = useStore((s) => s.sim);
   const setSim = useStore((s) => s.setSim);
   const setNav = useStore((s) => s.setNav);
+  const quality = useStore((s) => s.quality);
+  const setQuality = useStore((s) => s.setQuality);
   const product = activeProduct();
   const room = ROOMS.find((r) => r.id === sim.room) || ROOMS[0];
   const isUpload = sim.room === "upload";
@@ -76,13 +86,13 @@ export default function Simulator() {
               <div className="sim-canvas-wrap">
                 <Canvas
                   shadows="soft"
-                  dpr={[1, 2]}
-                  gl={{ preserveDrawingBuffer: true, antialias: false }}
+                  dpr={quality === "tinggi" ? [1, 1.75] : 1}
+                  gl={{ preserveDrawingBuffer: true, antialias: false, powerPreference: "high-performance" }}
                   camera={{ position: [0, 1.6, 3.7], fov: 50, near: 0.1, far: 100 }}
                   onCreated={({ gl }) => { gl.toneMappingExposure = 1.15; }}
                 >
-                  <Scene sim={sim} room={room} />
-                  <PostFX />
+                  <Scene sim={sim} room={room} quality={quality} />
+                  <PostFX quality={quality} />
                 </Canvas>
 
                 <div className="sim-overlay-tools">
@@ -97,6 +107,13 @@ export default function Simulator() {
                       </button>
                     ))}
                   </div>
+                  <button
+                    className="tool-btn"
+                    onClick={() => setQuality(quality === "tinggi" ? "hemat" : "tinggi")}
+                    title="Ganti kualitas render (hemat untuk HP)"
+                  >
+                    {quality === "tinggi" ? "✨ Tinggi" : "⚡ Hemat"}
+                  </button>
                   <button className="tool-btn" onClick={download} title="Unduh gambar">⬇️</button>
                 </div>
 

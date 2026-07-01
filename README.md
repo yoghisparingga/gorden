@@ -15,6 +15,9 @@ Dibangun dengan **React + Vite + Three.js** (`@react-three/fiber`).
   - **Preset waktu/suasana**: ☀️ Siang, 🌇 Sore (golden hour), 🌙 Malam
     (langit gelap + lampu interior menyala) — lihat efek blackout & vitrase
     di berbagai kondisi cahaya
+  - **Mode kualitas ✨ Tinggi / ⚡ Hemat** dengan deteksi otomatis (HP →
+    Hemat): mode hemat menonaktifkan efek berat (AO/bloom/animasi angin),
+    membekukan shadow map, & menurunkan resolusi agar lancar di perangkat ringan
   - 3 mode kamera: **🔄 Putar** (orbit), **🎥 Tour** (keliling otomatis),
     **🚶 Jelajah** (jalan keliling ruangan — WASD/tombol arah + seret untuk melihat)
   - **6 ruangan** preset (ruang tamu, kamar, kamar anak, ruang makan, dapur, kantor),
