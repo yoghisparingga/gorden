@@ -4,11 +4,24 @@
  * ========================================================================= */
 import { useRef } from "react";
 import { Canvas } from "@react-three/fiber";
+import { EffectComposer, N8AO, Bloom, SMAA, Vignette } from "@react-three/postprocessing";
 import Scene from "./Scene.jsx";
 import Controls from "./Controls.jsx";
 import UploadMode from "./UploadMode.jsx";
 import { useStore, activeProduct } from "../store.js";
 import { ROOMS } from "../data.js";
+
+/* Efek pasca-proses untuk tampilan interior modern */
+function PostFX() {
+  return (
+    <EffectComposer disableNormalPass multisampling={0}>
+      <N8AO aoRadius={0.7} intensity={2.4} distanceFalloff={1} halfRes />
+      <Bloom luminanceThreshold={0.82} intensity={0.4} mipmapBlur />
+      <SMAA />
+      <Vignette offset={0.28} darkness={0.5} eskil={false} />
+    </EffectComposer>
+  );
+}
 
 const MODES = [
   { id: "orbit", label: "🔄 Putar" },
@@ -62,12 +75,14 @@ export default function Simulator() {
             ) : (
               <div className="sim-canvas-wrap">
                 <Canvas
-                  shadows
+                  shadows="soft"
                   dpr={[1, 2]}
-                  gl={{ preserveDrawingBuffer: true, antialias: true }}
+                  gl={{ preserveDrawingBuffer: true, antialias: false }}
                   camera={{ position: [0, 1.6, 3.7], fov: 50, near: 0.1, far: 100 }}
+                  onCreated={({ gl }) => { gl.toneMappingExposure = 1.15; }}
                 >
                   <Scene sim={sim} room={room} />
+                  <PostFX />
                 </Canvas>
 
                 <div className="sim-overlay-tools">

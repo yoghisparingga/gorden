@@ -89,11 +89,15 @@ export default function Curtain({
 
   return (
     <mesh ref={meshRef} geometry={geometry} position={[dims.centerX, dims.centerY, z]} castShadow>
-      <meshStandardMaterial
+      <meshPhysicalMaterial
         map={tex}
         color="#ffffff"
-        roughness={0.9}
+        roughness={0.85}
         metalness={0}
+        sheen={0.6}
+        sheenRoughness={0.75}
+        sheenColor="#ffffff"
+        envMapIntensity={0.28}
         side={THREE.DoubleSide}
         transparent={opacity < 1}
         opacity={opacity}

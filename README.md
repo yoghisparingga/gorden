@@ -9,6 +9,9 @@ Dibangun dengan **React + Vite + Three.js** (`@react-three/fiber`).
 ## ✨ Fitur
 
 - **Simulator Gorden 3D** (Three.js / React Three Fiber):
+  - **Render realistis**: pencahayaan berbasis environment (pantulan lembut),
+    tone-mapping sinematik, bayangan lembut, material kain ber-sheen, tekstur
+    lantai kayu, serta post-processing (ambient occlusion + bloom + vignette)
   - 3 mode kamera: **🔄 Putar** (orbit), **🎥 Tour** (keliling otomatis),
     **🚶 Jelajah** (jalan keliling ruangan — WASD/tombol arah + seret untuk melihat)
   - **6 ruangan** preset (ruang tamu, kamar, kamar anak, ruang makan, dapur, kantor),
@@ -95,7 +98,7 @@ src/
 
 ## 🧰 Stack
 
-React 18 · Vite 5 · Three.js · @react-three/fiber · zustand
+React 18 · Vite 5 · Three.js · @react-three/fiber · @react-three/postprocessing · zustand
 
 ## 📝 Catatan
 

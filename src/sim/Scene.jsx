@@ -6,12 +6,30 @@ import { useEffect, useMemo, useRef } from "react";
 import { extend, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import Curtain from "./Curtain.jsx";
 import Furniture from "./Furniture.jsx";
 import { makeFabricTexture } from "../lib/fabric.js";
+import { makeFloorTexture } from "../lib/textures.js";
 import { useStore } from "../store.js";
 
 extend({ OrbitControls });
+
+/* Pencahayaan berbasis environment (soft reflections/IBL) */
+function Env() {
+  const { gl, scene } = useThree();
+  useEffect(() => {
+    const pmrem = new THREE.PMREMGenerator(gl);
+    const env = pmrem.fromScene(new RoomEnvironment(), 0.04);
+    scene.environment = env.texture;
+    return () => {
+      env.texture.dispose();
+      pmrem.dispose();
+      scene.environment = null;
+    };
+  }, [gl, scene]);
+  return null;
+}
 
 const ROOM = { W: 6, H: 3.2, D: 6 };
 
@@ -211,6 +229,12 @@ export default function Scene({ sim, room }) {
     [sim.color, sim.motif]
   );
   const sheerTex = useMemo(() => makeFabricTexture("#ffffff", "polos"), []);
+  const floorTex = useMemo(() => {
+    const t = makeFloorTexture(room.floor);
+    t.map.repeat.set(4, 4);
+    t.bump.repeat.set(4, 4);
+    return t;
+  }, [room.floor]);
 
   const isVitraseStyle = sim.style === "vitrase";
   const mainOpacity = isVitraseStyle ? 0.5 : sim.opacity;
@@ -221,56 +245,60 @@ export default function Scene({ sim, room }) {
 
   return (
     <>
-      <color attach="background" args={["#d9d2c6"]} />
-      <fog attach="fog" args={["#d9d2c6", 9, 16]} />
+      <color attach="background" args={["#e7e0d5"]} />
+      <fog attach="fog" args={["#e7e0d5", 10, 18]} />
+      <Env />
 
       {/* Pencahayaan */}
-      <ambientLight intensity={0.5} />
-      <hemisphereLight args={["#ffffff", room.floor, 0.5]} />
-      <directionalLight position={[2.5, 3, 2]} intensity={0.45} />
+      <ambientLight intensity={0.18} />
+      <hemisphereLight args={["#ffffff", room.floor, 0.35]} />
+      <directionalLight position={[3, 3, 2.5]} intensity={0.35} />
       <directionalLight
-        position={[0.6, winCY + 1.2, wallZ - 2]}
-        intensity={1.5}
-        color="#fff2cf"
+        position={[0.6, winCY + 1.4, wallZ - 2.2]}
+        intensity={2.4}
+        color="#fff1c9"
         castShadow
-        shadow-mapSize-width={1024}
-        shadow-mapSize-height={1024}
+        shadow-mapSize-width={2048}
+        shadow-mapSize-height={2048}
+        shadow-bias={-0.0002}
+        shadow-normalBias={0.02}
+        shadow-radius={7}
         shadow-camera-near={0.5}
-        shadow-camera-far={12}
-        shadow-camera-left={-4}
-        shadow-camera-right={4}
+        shadow-camera-far={14}
+        shadow-camera-left={-4.5}
+        shadow-camera-right={4.5}
         shadow-camera-top={4}
-        shadow-camera-bottom={-1}
+        shadow-camera-bottom={-1.5}
       />
 
       {/* Lantai */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
         <planeGeometry args={[ROOM.W, ROOM.D]} />
-        <meshStandardMaterial color={room.floor} roughness={0.95} />
+        <meshStandardMaterial map={floorTex.map} bumpMap={floorTex.bump} bumpScale={0.015} roughness={0.5} metalness={0.05} envMapIntensity={0.55} />
       </mesh>
       {/* Karpet */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, -0.6]} receiveShadow>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.012, -0.6]} receiveShadow>
         <planeGeometry args={[ROOM.W * 0.55, ROOM.D * 0.4]} />
-        <meshStandardMaterial color={lighten(room.accent, 0.45)} roughness={1} />
+        <meshStandardMaterial color={lighten(room.accent, 0.45)} roughness={0.95} envMapIntensity={0.3} />
       </mesh>
       {/* Plafon */}
       <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, ROOM.H, 0]}>
         <planeGeometry args={[ROOM.W, ROOM.D]} />
-        <meshStandardMaterial color={lighten(room.wall, 0.25)} roughness={1} />
+        <meshStandardMaterial color={lighten(room.wall, 0.28)} roughness={1} envMapIntensity={0.2} />
       </mesh>
       {/* Dinding belakang */}
       <mesh position={[0, ROOM.H / 2, wallZ]} receiveShadow>
         <planeGeometry args={[ROOM.W, ROOM.H]} />
-        <meshStandardMaterial color={room.wall} roughness={1} />
+        <meshStandardMaterial color={room.wall} roughness={0.92} envMapIntensity={0.28} />
       </mesh>
       {/* Dinding samping */}
       <mesh rotation={[0, Math.PI / 2, 0]} position={[-ROOM.W / 2, ROOM.H / 2, 0]} receiveShadow>
         <planeGeometry args={[ROOM.D, ROOM.H]} />
-        <meshStandardMaterial color={lighten(room.wall, -0.06)} roughness={1} />
+        <meshStandardMaterial color={lighten(room.wall, -0.05)} roughness={0.92} envMapIntensity={0.25} />
       </mesh>
       <mesh rotation={[0, -Math.PI / 2, 0]} position={[ROOM.W / 2, ROOM.H / 2, 0]} receiveShadow>
         <planeGeometry args={[ROOM.D, ROOM.H]} />
-        <meshStandardMaterial color={lighten(room.wall, -0.06)} roughness={1} />
+        <meshStandardMaterial color={lighten(room.wall, -0.05)} roughness={0.92} envMapIntensity={0.25} />
       </mesh>
 
       {/* Pemandangan langit di jendela */}
